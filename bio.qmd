@@ -2,27 +2,27 @@
 title: "About Me"
 ---
 
-Write a short biography here.
+I am a Master's student in Applied Economics and Data Science at the University of Pennsylvania, focusing on econometrics, quantitative modeling, and applied data analysis. Before Penn, I completed my BA in Economics at the University of Cambridge.
 
-Include:
-
--   Educational background
--   Professional interests
--   Technical skills
--   Career goals
+My work sits at the intersection of economics and quantitative methods. I have built market risk frameworks in Python, developed and backtested VaR models, and worked on equity research and factor-based portfolio strategies across asset management, private equity, and quantitative research settings in the US, UK, Hong Kong, and mainland China.
 
 ## Education
 
-Master of Applied Economics and Data Science, University of Pennsylvania (expaceted 2027) Batelor of Science, University Name 2026
+- **University of Pennsylvania** — MA in Applied Economics and Data Science, Aug. 2026 – Nov. 2027 (expected)
+- **University of Cambridge** — BA in Economics, Sep. 2023 – Jun. 2026
 
 ## Interests
 
--   Econometrics
--   Machine Learning
--   Data Analysis
+- Econometrics and causal inference
+- Quantitative risk modeling
+- Machine learning applied to financial markets
+
+## Technical Skills
+
+Python, Java, SQL, Stata, EViews, R
 
 ## Contact
 
-## student\@email.edu
-
-------------------------------------------------------------------------
+Email: [jhaowen@sas.upenn.edu](mailto:jhaowen@sas.upenn.edu)  
+LinkedIn: [haowen-jiang-peter](https://www.linkedin.com/in/haowen-jiang-peter/)  
+GitHub: [Peterjianghaowen](https://github.com/Peterjianghaowen)

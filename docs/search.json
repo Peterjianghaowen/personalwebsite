@@ -4,35 +4,35 @@
     "href": "bio.html",
     "title": "About Me",
     "section": "",
-    "text": "Write a short biography here.\nInclude:"
+    "text": "I am a Master’s student in Applied Economics and Data Science at the University of Pennsylvania, focusing on econometrics, quantitative modeling, and applied data analysis. Before Penn, I completed my BA in Economics at the University of Cambridge.\nMy work sits at the intersection of economics and quantitative methods. I have built market risk frameworks in Python, developed and backtested VaR models, and worked on equity research and factor-based portfolio strategies across asset management, private equity, and quantitative research settings in the US, UK, Hong Kong, and mainland China."
   },
   {
     "objectID": "bio.html#education",
     "href": "bio.html#education",
     "title": "About Me",
     "section": "Education",
-    "text": "Education\nMaster of Applied Economics and Data Science, University of Pennsylvania (expaceted 2027) Batelor of Science, University Name 2026"
+    "text": "Education\n\nUniversity of Pennsylvania — MA in Applied Economics and Data Science, Aug. 2026 – Nov. 2027 (expected)\nUniversity of Cambridge — BA in Economics, Sep. 2023 – Jun. 2026"
   },
   {
     "objectID": "bio.html#interests",
     "href": "bio.html#interests",
     "title": "About Me",
     "section": "Interests",
-    "text": "Interests\n\nEconometrics\nMachine Learning\nData Analysis"
+    "text": "Interests\n\nEconometrics and causal inference\nQuantitative risk modeling\nMachine learning applied to financial markets"
+  },
+  {
+    "objectID": "bio.html#technical-skills",
+    "href": "bio.html#technical-skills",
+    "title": "About Me",
+    "section": "Technical Skills",
+    "text": "Technical Skills\nPython, Java, SQL, Stata, EViews, R"
   },
   {
     "objectID": "bio.html#contact",
     "href": "bio.html#contact",
     "title": "About Me",
     "section": "Contact",
-    "text": "Contact"
-  },
-  {
-    "objectID": "bio.html#studentemail.edu",
-    "href": "bio.html#studentemail.edu",
-    "title": "About Me",
-    "section": "student@email.edu",
-    "text": "student@email.edu"
+    "text": "Contact\nEmail: jhaowen@sas.upenn.edu\nLinkedIn: haowen-jiang-peter\nGitHub: Peterjianghaowen"
   },
   {
     "objectID": "blog/index.html",
@@ -53,14 +53,7 @@
     "href": "resume.html",
     "title": "Resume",
     "section": "",
-    "text": "Download my resume here:"
-  },
-  {
-    "objectID": "resume.html#resume-pdf",
-    "href": "resume.html#resume-pdf",
-    "title": "Resume",
-    "section": "Resume PDF",
-    "text": "Resume PDF"
+    "text": "Download PDF"
   },
   {
     "objectID": "index.html",
