@@ -1,0 +1,142 @@
+---
+title: "One Theorem, Four Lemmas: The Envelope Theorem in Microeconomics"
+date: 2026-09-14
+categories:
+  - economics
+  - microeconomics
+format:
+  html:
+    code-fold: true
+    code-summary: "Show code"
+---
+
+Intermediate microeconomics hands you a pile of results that look unrelated: Shephard's Lemma, Hotelling's Lemma, Roy's Identity. Each gets its own proof, its own diagram, its own place on the exam.
+
+They are the same theorem. Once you see the **envelope theorem**, the other three are one-line substitutions.
+
+## The unconstrained case
+
+Let $f(x,\theta)$ be an objective function and $\theta$ a parameter. Define the value function
+
+$$V(\theta) = \max_{x} f(x,\theta), \qquad x^*(\theta) = \operatorname*{arg\,max}_{x} f(x,\theta).$$
+
+Substitute the maximiser back in and differentiate by the chain rule:
+
+$$\frac{dV}{d\theta} = \underbrace{\frac{\partial f}{\partial x}\bigg|_{x^*}\frac{dx^*}{d\theta}}_{\text{indirect effect}} \;+\; \underbrace{\frac{\partial f}{\partial \theta}\bigg|_{x^*}}_{\text{direct effect}}.$$
+
+At an interior maximum the first-order condition is $\partial f/\partial x = 0$. The indirect term is therefore zero — no matter how violently $x^*$ moves. So
+
+$$\boxed{\;\frac{dV}{d\theta} = \frac{\partial f}{\partial \theta}\bigg|_{x = x^*(\theta)}\;}$$
+
+Note what we never needed: $dx^*/d\theta$ itself. It is annihilated by the FOC, which is exactly why the theorem is useful when the comparative statics of $x^*$ are intractable.
+
+## The constrained case
+
+Now impose a constraint:
+
+$$V(\theta) = \max_x f(x,\theta) \quad \text{s.t.} \quad g(x,\theta) = 0,$$
+
+with Lagrangian $\mathcal{L}(x,\lambda,\theta) = f(x,\theta) - \lambda\, g(x,\theta)$ and first-order conditions
+
+$$\frac{\partial f}{\partial x} = \lambda \frac{\partial g}{\partial x}, \qquad g\big(x^*(\theta),\theta\big) = 0.$$
+
+Differentiating $V(\theta) = f(x^*(\theta),\theta)$ gives the same decomposition as before — but now the indirect term does **not** vanish, because $\partial f/\partial x \neq 0$ at a constrained optimum.
+
+The rescue comes from the constraint, which holds *identically* in $\theta$. Differentiate it:
+
+$$\frac{\partial g}{\partial x}\frac{dx^*}{d\theta} + \frac{\partial g}{\partial \theta} = 0 \quad\Longrightarrow\quad \frac{\partial g}{\partial x}\frac{dx^*}{d\theta} = -\frac{\partial g}{\partial \theta}.$$
+
+Substitute the FOC $\partial f/\partial x = \lambda\,\partial g/\partial x$ into the indirect term:
+
+$$\frac{dV}{d\theta} = \frac{\partial f}{\partial x}\frac{dx^*}{d\theta}+\frac{\partial f}{\partial \theta}=\lambda\frac{\partial g}{\partial x}\frac{dx^*}{d\theta} + \frac{\partial f}{\partial \theta} = \frac{\partial f}{\partial \theta} - \lambda\frac{\partial g}{\partial \theta} = \frac{\partial \mathcal{L}}{\partial \theta}\bigg|_{x^*,\,\lambda^*}.$$
+
+Differentiate the Lagrangian, hold $x$ and $\lambda$ fixed, done. When $g$ does not involve $\theta$, the second term drops out and this reduces to the unconstrained formula. The multiplier earns its keep here: moving $\theta$ also loosens or tightens the constraint, and that channel is not second-order.
+
+## Four applications
+
+The theorem holds for minimisation too: apply the result above to $-f$ and negate. Only the second-order conditions differ, and they play no role in the argument.
+
+**Shephard's Lemma.** Expenditure minimisation: $e(p,\bar u) = \min_x \{p \cdot x : u(x) \ge \bar u\}$, so $\mathcal{L} = p \cdot x - \lambda(u(x) - \bar u)$. Consider $\theta = p_i$. Then $\partial\mathcal{L}/\partial p_i = x_i$, giving
+
+$$\frac{\partial e(p,\bar u)}{\partial p_i} = h_i(p,\bar u).$$
+
+
+Take $\theta = \bar u$ instead and $\partial\mathcal{L}/\partial \bar u = \lambda$, so $\partial e/\partial \bar u = \lambda^*$ — the multiplier is the shadow price of utility. The identical argument applied to the firm's cost function $c(y,w) = \min_x \{w \cdot x : F(x) \ge y\}$ gives $\partial c/\partial w_j = x_j(y,w)$, the conditional factor demand.
+
+**Hotelling's Lemma.** Profit maximisation over inputs: $\pi(p,w) = \max_x \{p\,F(x) - w \cdot x\}$, unconstrained. With $f(x,p,w) = p\,F(x) - w\cdot x$, take $\theta = p$:
+
+$$\frac{\partial \pi}{\partial p} = \frac{\partial f}{\partial p}\bigg|_{x^*} = F(x^*) = y^*(p,w),$$
+
+the profit-maximising supply. Take $\theta = w_j$ and $\partial f/\partial w_j = -x_j$, so $\partial\pi/\partial w_j = -x_j^*(p,w)$ — the unconditional factor demand.
+
+**Roy's Identity.** Utility maximisation: $v(p,m) = \max_x u(x)$ s.t. $p\cdot x = m$, so $\mathcal{L} = u(x) - \lambda(p\cdot x - m)$. Two applications:
+
+$$\frac{\partial v}{\partial p_i} = -\lambda x_i^*, \qquad \frac{\partial v}{\partial m} = \lambda.$$
+
+Divide one by the other and $\lambda$ cancels:
+
+$$x_i^*(p,m) = -\frac{\partial v/\partial p_i}{\partial v/\partial m}.$$
+
+Marshallian demand recovered from the indirect utility function without solving the consumer's problem again.
+
+**The Le Chatelier principle.** Compare a short run with $x_2$ fixed against a long run where it adjusts. The long-run cost function is the lower envelope of the short-run ones: they are tangent at the reference factor price $w_1^0$, and $c^{\mathrm{LR}}$ lies weakly below everywhere else. So $D(w_1) = c^{\mathrm{SR}} - c^{\mathrm{LR}} \ge 0$ attains its minimum of zero at $w_1^0$, giving $D''(w_1^0) \ge 0$. By Shephard, $x_1 = \partial c/\partial w_1$, so
+
+$$\frac{\partial x_1^{\mathrm{SR}}}{\partial w_1} \ \ge\ \frac{\partial x_1^{\mathrm{LR}}}{\partial w_1}.$$
+
+Both second derivatives are non-positive because cost functions are concave in factor prices — the same envelope argument that makes $e$ concave in $p$. Combining this with the inequality above gives, in absolute value,
+
+$$\left|\frac{\partial x_1^{\mathrm{LR}}}{\partial w_1}\right| \ \ge\ \left|\frac{\partial x_1^{\mathrm{SR}}}{\partial w_1}\right|.$$
+
+Long-run conditional demand responds at least as much as short-run. Samuelson's 1947 result — a consequence of the geometry of optimisation, not of any additional behavioural assumption.
+
+## Why "envelope"?
+
+The name is literal. Fix a consumption bundle $x^{(k)}$ and ask what it costs as $p_1$ varies: the answer is $p \cdot x^{(k)}$, a **straight line** in $p_1$ with slope $x_1^{(k)}$. Every bundle gives one such line.
+
+The expenditure function is the *lower envelope* of that family — at each price you take whichever bundle is cheapest. A minimum over straight lines is concave, and at every price it is tangent to whichever line is currently optimal. Tangent means equal slope, and that slope is $x_1^*$. Shephard's Lemma, read straight off the picture.
+
+```{r}
+#| label: fig-envelope
+#| fig-cap: "Grey lines: the cost of holding one fixed bundle as $p_1$ varies. Black curve: the cost of re-optimising at every price. The black curve is their lower envelope, and grazes each line tangentially."
+#| warning: false
+#| message: false
+
+library(ggplot2)
+
+# Cobb-Douglas: u = x1^a * x2^(1-a). All curves below are closed-form
+a <- 0.5; u_target <- 1; p2 <- 1
+
+# Expenditure function e(p1,p2,u) = u * (p1/a)^a * (p2/(1-a))^(1-a)
+e_true <- function(p1) u_target * (p1/a)^a * (p2/(1-a))^(1-a)
+
+# Hicksian demand for good 1, from Shephard: h1 = a*e/p1
+h1 <- function(p1) a * e_true(p1) / p1
+
+p_grid <- seq(0.5, 4, length.out = 200)
+
+# Cost of the bundle that was optimal at p0, evaluated at every p1
+fixed_bundle_line <- function(p0) {
+  x1 <- h1(p0)
+  x2 <- (1 - a) * e_true(p0) / p2
+  data.frame(p1 = p_grid, cost = p_grid * x1 + p2 * x2, anchor = p0)
+}
+
+lines_df <- do.call(rbind, lapply(c(0.75, 1.25, 2, 3), fixed_bundle_line))
+env_df   <- data.frame(p1 = p_grid, cost = e_true(p_grid))
+
+ggplot() +
+  geom_line(data = lines_df, aes(p1, cost, group = anchor),
+            colour = "grey65", linewidth = 0.4) +
+  geom_line(data = env_df, aes(p1, cost), linewidth = 1) +
+  coord_cartesian(ylim = c(0, 6)) +
+  labs(x = expression(p[1]), y = "Expenditure") +
+  theme_minimal(base_size = 12)
+```
+
+Each grey line is a consumer who never adjusts. The black curve is one who re-optimises constantly. Where they touch, they *graze* — the gap opens quadratically, not linearly. That is the envelope theorem as a picture: at the optimum, small adjustments are free to first order.
+
+**Data.** No external data. Every curve is generated from the closed-form Cobb-Douglas expenditure function in the code above; the only inputs are $a = 0.5$, $\bar u = 1$, $p_2 = 1$.
+
+## Takeaway
+
+When you differentiate a value function, ignore how the optimal choice moves and differentiate the Lagrangian directly. That single fact gives you Shephard, Hotelling, Roy and Le Chatelier — plus the reason a small tax has deadweight loss proportional to the *square* of the tax. Four lemmas, one theorem, and the FOC doing all the work.
