@@ -303,21 +303,21 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>top <span class="sc">|&gt;</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(player, team, age, vorp, salary_m, market_value_m, surplus_m) <span class="sc">|&gt;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Player"</span>, <span class="st">"Team"</span>, <span class="st">"Age"</span>, <span class="st">"VORP"</span>, <span class="st">"Salary ($M)"</span>,</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Market value ($M)"</span>, <span class="st">"Surplus ($M)"</span>),</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Player"</span>, <span class="st">"Team"</span>, <span class="st">"Age"</span>, <span class="st">"VORP"</span>, <span class="st">"Salary (</span><span class="sc">\\\\</span><span class="st">$M)"</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Market value (</span><span class="sc">\\\\</span><span class="st">$M)"</span>, <span class="st">"Surplus (</span><span class="sc">\\\\</span><span class="st">$M)"</span>),</span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">caption =</span> <span class="st">"Table 1. Top 10 surplus values"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <caption>Table 1. Top 10 surplus values</caption>
 <colgroup>
-<col style="width: 29%">
-<col style="width: 6%">
+<col style="width: 27%">
+<col style="width: 5%">
 <col style="width: 4%">
-<col style="width: 6%">
-<col style="width: 14%">
-<col style="width: 22%">
+<col style="width: 5%">
 <col style="width: 16%">
+<col style="width: 22%">
+<col style="width: 17%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -325,8 +325,8 @@ window.Quarto = {
 <th style="text-align: left;">Team</th>
 <th style="text-align: right;">Age</th>
 <th style="text-align: right;">VORP</th>
-<th style="text-align: right;">Salary (<span class="math inline">\(M)| Market value (\)</span>M)</th>
-<th style="text-align: right;">Surplus ($M)</th>
+<th style="text-align: right;">Salary (\<span class="math inline">\(M)| Market value (\\\)</span>M)</th>
+<th style="text-align: right;">Surplus (\$M)</th>
 <th style="text-align: right;"></th>
 </tr>
 </thead>
@@ -447,8 +447,8 @@ window.Quarto = {
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>by_age <span class="sc">|&gt;</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">share_bargain  =</span> <span class="fu">pct</span>(share_bargain),</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">share_overpaid =</span> <span class="fu">pct</span>(share_overpaid)) <span class="sc">|&gt;</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Age group"</span>, <span class="st">"Players"</span>, <span class="st">"Median salary ($M)"</span>, <span class="st">"Median VORP"</span>,</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Median surplus ($M)"</span>, <span class="st">"Share underpaid"</span>, <span class="st">"Share overpaid"</span>),</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Age group"</span>, <span class="st">"Players"</span>, <span class="st">"Median salary (</span><span class="sc">\\</span><span class="st">$M)"</span>, <span class="st">"Median VORP"</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Median surplus (</span><span class="sc">\\</span><span class="st">$M)"</span>, <span class="st">"Share underpaid"</span>, <span class="st">"Share overpaid"</span>),</span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">caption =</span> <span class="st">"Table 2. Summary by age group. Under- and overpaid mean outside the 80% prediction band."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
@@ -457,9 +457,9 @@ window.Quarto = {
 <colgroup>
 <col style="width: 12%">
 <col style="width: 7%">
-<col style="width: 18%">
-<col style="width: 11%">
 <col style="width: 19%">
+<col style="width: 11%">
+<col style="width: 20%">
 <col style="width: 15%">
 <col style="width: 14%">
 </colgroup>
@@ -467,11 +467,11 @@ window.Quarto = {
 <tr class="header">
 <th style="text-align: left;">Age group</th>
 <th style="text-align: right;">Players</th>
-<th style="text-align: right;">Median salary (<span class="math inline">\(M)| Median VORP| Median surplus (\)</span>M)</th>
-<th style="text-align: right;">Share underpaid</th>
-<th style="text-align: right;">Share overpaid</th>
-<th style="text-align: left;"></th>
-<th style="text-align: left;"></th>
+<th style="text-align: right;">Median salary ($M)</th>
+<th style="text-align: right;">Median VORP</th>
+<th style="text-align: right;">Median surplus ($M)</th>
+<th style="text-align: left;">Share underpaid</th>
+<th style="text-align: left;">Share overpaid</th>
 </tr>
 </thead>
 <tbody>
