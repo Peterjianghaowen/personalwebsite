@@ -32,7 +32,7 @@ robust    <- read_csv(paste0(base, "results/tables/robustness.csv"))
 est   <- setNames(age_coefs$Estimate, age_coefs$term)
 young <- exp(est[["age_group24 and under"]]) - 1
 old   <- exp(est[["age_group30 and over"]]) - 1
-r2    <- model_fit$r2[model_fit\\$Model == "Linear VORP"]
+r2    <- model_fit$r2[model_fit$model == "Linear VORP"]
 pct   <- function(x) paste0(round(abs(x) * 100), "%")
 ```
 
