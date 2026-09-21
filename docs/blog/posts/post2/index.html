@@ -6,9 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-06-16">
+<meta name="dcterms.date" content="2026-09-21">
 
-<title>My Second Blog Post – Haowen Jiang</title>
+<title>Are NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players – Haowen Jiang</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -23,6 +23,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -72,6 +107,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../../styles.css">
 </head>
@@ -126,10 +190,11 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">My Second Blog Post</h1>
+<h1 class="title">Are NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players</h1>
   <div class="quarto-categories">
-    <div class="quarto-category">opinion</div>
-    <div class="quarto-category">labor market</div>
+    <div class="quarto-category">web scraping</div>
+    <div class="quarto-category">economics</div>
+    <div class="quarto-category">R</div>
   </div>
   </div>
 
@@ -141,7 +206,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">June 16, 2026</p>
+      <p class="date">September 21, 2026</p>
     </div>
   </div>
   
@@ -153,8 +218,318 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="this-is-my-second-blog-post." class="level2">
-<h2 class="anchored" data-anchor-id="this-is-my-second-blog-post.">This is my second blog post.</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># All tables and figures come from the analysis repository</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>base <span class="ot">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/Peterjianghaowen/nba-salary-efficiency/main/"</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>nba       <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">paste0</span>(base, <span class="st">"data/processed/nba_2026.csv"</span>))</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>top       <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">paste0</span>(base, <span class="st">"results/tables/top_bargains.csv"</span>))</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>by_age    <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">paste0</span>(base, <span class="st">"results/tables/by_age_group.csv"</span>))</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>model_fit <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">paste0</span>(base, <span class="st">"results/tables/model_fit.csv"</span>))</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>age_coefs <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">paste0</span>(base, <span class="st">"results/tables/age_discount_robust.csv"</span>))</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>robust    <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">paste0</span>(base, <span class="st">"results/tables/robustness.csv"</span>))</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>est   <span class="ot">&lt;-</span> <span class="fu">setNames</span>(age_coefs<span class="sc">$</span>Estimate, age_coefs<span class="sc">$</span>term)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>young <span class="ot">&lt;-</span> <span class="fu">exp</span>(est[[<span class="st">"age_group24 and under"</span>]]) <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>old   <span class="ot">&lt;-</span> <span class="fu">exp</span>(est[[<span class="st">"age_group30 and over"</span>]]) <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>r2    <span class="ot">&lt;-</span> model_fit<span class="sc">$</span>r2[model_fit<span class="sc">$</span>model <span class="sc">==</span> <span class="st">"Linear VORP"</span>]</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>pct   <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">paste0</span>(<span class="fu">round</span>(<span class="fu">abs</span>(x) <span class="sc">*</span> <span class="dv">100</span>), <span class="st">"%"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<section id="the-question" class="level2">
+<h2 class="anchored" data-anchor-id="the-question">The question</h2>
+<p>Under the salary cap, every dollar a team spends on one player is a dollar it can’t spend on another. So the useful question for a front office is not who the best players are, but who delivers the most production per dollar. If salaries tracked on-court value closely, there would be no bargains to find. This post tests that: I scrape a full season of player statistics and salaries, estimate what the league pays for production, and measure how far each player sits from that rate.</p>
+</section>
+<section id="data" class="level2">
+<h2 class="anchored" data-anchor-id="data">Data</h2>
+<p>Both datasets come from Basketball-Reference for the 2025-26 regular season: the league-wide advanced stats page, and the salary table on each of the 30 team pages. The site’s robots.txt allows these pages and sets a three-second crawl delay, and Sports Reference blocks clients sending more than 20 requests a minute, so the scraper waits four seconds between each of its 32 requests. No login or paywall is involved.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>adv_raw <span class="ot">&lt;-</span> <span class="fu">read_html</span>(<span class="fu">paste0</span>(base_url, <span class="st">"/leagues/NBA_2026_advanced.html"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_element</span>(<span class="st">"table"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_table</span>()</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (tm <span class="cf">in</span> teams) {</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  salary_list[[tm]] <span class="ot">&lt;-</span> <span class="fu">scrape_team_salary</span>(tm)  <span class="co"># salary table sits inside an HTML comment</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">Sys.sleep</span>(<span class="dv">4</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Cleaning took more work than scraping. Traded players appear once per team plus a combined row, and I kept the combined row. Names don’t always match across pages: suffixes like “Jr.” appear on one page but not the other, and in one case a Cyrillic letter looks identical to a Latin one. Players were matched on a normalised name key, with two remaining cases fixed by hand. Players on two-way contracts have no listed salary and drop out. Keeping players with at least 1,000 minutes leaves 278.</p>
+</section>
+<section id="method" class="level2">
+<h2 class="anchored" data-anchor-id="method">Method</h2>
+<p>Production is measured by VORP (value over replacement player), a box-score estimate of a player’s total contribution above a freely available replacement.</p>
+<p>To get a market rate, I regress log salary on VORP using only players aged 25 and over. Most of them signed their current deals in free agency, while many younger players are on rookie-scale contracts whose pay is set by draft position rather than negotiated. Applying this curve to every player gives a <strong>market value</strong>: roughly what a veteran with the same production earns. <strong>Surplus value</strong> is market value minus actual salary. Predictions are converted back to dollars with Duan’s smearing estimator and capped at the league’s highest salary, since no contract can exceed the max.</p>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">include_graphics</span>(<span class="fu">paste0</span>(base, <span class="st">"results/figures/fig1_market_curve.png"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://raw.githubusercontent.com/Peterjianghaowen/nba-salary-efficiency/main/results/figures/fig1_market_curve.png" class="img-fluid figure-img"></p>
+<figcaption>Figure 1. Salary against VORP. The curve and 80% prediction band are fitted on players aged 25+.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The first result is how loose the relationship is. Even among veterans, this season’s VORP explains only about 19% of the variation in log salary. Contracts are signed years in advance, based on past performance and expected growth or decline, so one season is a noisy guide to pay. The five labelled players in the upper left are all in their 30s, on large contracts that their production this season came nowhere near justifying.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">include_graphics</span>(<span class="fu">paste0</span>(base, <span class="st">"results/figures/fig2_top_bargains.png"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://raw.githubusercontent.com/Peterjianghaowen/nba-salary-efficiency/main/results/figures/fig2_top_bargains.png" class="img-fluid figure-img"></p>
+<figcaption>Figure 2. The 15 largest surplus values, coloured by age group.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>top <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(player, team, age, vorp, salary_m, market_value_m, surplus_m) <span class="sc">|&gt;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Player"</span>, <span class="st">"Team"</span>, <span class="st">"Age"</span>, <span class="st">"VORP"</span>, <span class="st">"Salary ($M)"</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Market value ($M)"</span>, <span class="st">"Surplus ($M)"</span>),</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">caption =</span> <span class="st">"Table 1. Top 10 surplus values"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Table 1. Top 10 surplus values</caption>
+<colgroup>
+<col style="width: 29%">
+<col style="width: 6%">
+<col style="width: 4%">
+<col style="width: 6%">
+<col style="width: 14%">
+<col style="width: 22%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Player</th>
+<th style="text-align: left;">Team</th>
+<th style="text-align: right;">Age</th>
+<th style="text-align: right;">VORP</th>
+<th style="text-align: right;">Salary (<span class="math inline">\(M)| Market value (\)</span>M)</th>
+<th style="text-align: right;">Surplus ($M)</th>
+<th style="text-align: right;"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Victor Wembanyama</td>
+<td style="text-align: left;">SAS</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">6.0</td>
+<td style="text-align: right;">13.38</td>
+<td style="text-align: right;">59.61</td>
+<td style="text-align: right;">46.23</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Jalen Duren</td>
+<td style="text-align: left;">DET</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">3.5</td>
+<td style="text-align: right;">6.48</td>
+<td style="text-align: right;">36.00</td>
+<td style="text-align: right;">29.51</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Amen Thompson</td>
+<td style="text-align: left;">HOU</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">3.4</td>
+<td style="text-align: right;">9.69</td>
+<td style="text-align: right;">34.86</td>
+<td style="text-align: right;">25.17</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Collin Gillespie</td>
+<td style="text-align: left;">PHO</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">2.6</td>
+<td style="text-align: right;">2.30</td>
+<td style="text-align: right;">27.00</td>
+<td style="text-align: right;">24.70</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Neemias Queta</td>
+<td style="text-align: left;">BOS</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">2.4</td>
+<td style="text-align: right;">2.35</td>
+<td style="text-align: right;">25.32</td>
+<td style="text-align: right;">22.97</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Kon Knueppel</td>
+<td style="text-align: left;">CHO</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">3.1</td>
+<td style="text-align: right;">10.02</td>
+<td style="text-align: right;">31.68</td>
+<td style="text-align: right;">21.66</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Deni Avdija</td>
+<td style="text-align: left;">POR</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">3.5</td>
+<td style="text-align: right;">14.38</td>
+<td style="text-align: right;">36.00</td>
+<td style="text-align: right;">21.62</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Payton Pritchard</td>
+<td style="text-align: left;">BOS</td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">2.8</td>
+<td style="text-align: right;">7.23</td>
+<td style="text-align: right;">28.78</td>
+<td style="text-align: right;">21.55</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Shai Gilgeous-Alexander</td>
+<td style="text-align: left;">OKC</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">7.8</td>
+<td style="text-align: right;">38.33</td>
+<td style="text-align: right;">59.61</td>
+<td style="text-align: right;">21.27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Sandro Mamukelashvili</td>
+<td style="text-align: left;">TOR</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: right;">2.1</td>
+<td style="text-align: right;">2.46</td>
+<td style="text-align: right;">23.01</td>
+<td style="text-align: right;">20.55</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Victor Wembanyama tops the list: his production would command a max contract on the open market, but his rookie deal pays $13.38 million. 7 of the top 15 are 24 or younger. Most of the rest are 25-29 on small contracts, and several of them (Collin Gillespie, Neemias Queta, Sandro Mamukelashvili) were undrafted or second-round picks, who get no rookie-scale guarantee and often sign cheap deals before breaking out.</p>
+<p>The age pattern holds up formally. Holding VORP fixed, players 24 and under earn about 38% less than players aged 25-29, and players 30 and over earn about 68% more. Both differences are significant at the 0.1% level with heteroskedasticity-robust standard errors.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">include_graphics</span>(<span class="fu">paste0</span>(base, <span class="st">"results/figures/fig3_surplus_by_age.png"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://raw.githubusercontent.com/Peterjianghaowen/nba-salary-efficiency/main/results/figures/fig3_surplus_by_age.png" class="img-fluid figure-img"></p>
+<figcaption>Figure 3. Surplus value by age group. The dashed line marks salary equal to market value.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>by_age <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">share_bargain  =</span> <span class="fu">pct</span>(share_bargain),</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">share_overpaid =</span> <span class="fu">pct</span>(share_overpaid)) <span class="sc">|&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Age group"</span>, <span class="st">"Players"</span>, <span class="st">"Median salary ($M)"</span>, <span class="st">"Median VORP"</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Median surplus ($M)"</span>, <span class="st">"Share underpaid"</span>, <span class="st">"Share overpaid"</span>),</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">caption =</span> <span class="st">"Table 2. Summary by age group. Under- and overpaid mean outside the 80% prediction band."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Table 2. Summary by age group. Under- and overpaid mean outside the 80% prediction band.</caption>
+<colgroup>
+<col style="width: 12%">
+<col style="width: 7%">
+<col style="width: 18%">
+<col style="width: 11%">
+<col style="width: 19%">
+<col style="width: 15%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Age group</th>
+<th style="text-align: right;">Players</th>
+<th style="text-align: right;">Median salary (<span class="math inline">\(M)| Median VORP| Median surplus (\)</span>M)</th>
+<th style="text-align: right;">Share underpaid</th>
+<th style="text-align: right;">Share overpaid</th>
+<th style="text-align: left;"></th>
+<th style="text-align: left;"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">24 and under</td>
+<td style="text-align: right;">109</td>
+<td style="text-align: right;">5.46</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">8.71</td>
+<td style="text-align: left;">22%</td>
+<td style="text-align: left;">0%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">25-29</td>
+<td style="text-align: right;">112</td>
+<td style="text-align: right;">12.92</td>
+<td style="text-align: right;">0.95</td>
+<td style="text-align: right;">4.35</td>
+<td style="text-align: left;">21%</td>
+<td style="text-align: left;">2%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">30 and over</td>
+<td style="text-align: right;">57</td>
+<td style="text-align: right;">21.12</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">-2.72</td>
+<td style="text-align: left;">9%</td>
+<td style="text-align: left;">7%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The rankings are not an artifact of the production measure: repeating the analysis with Win Shares gives a rank correlation of 0.919 with the VORP results.</p>
+</section>
+<section id="what-a-front-office-should-do-with-this" class="level2">
+<h2 class="anchored" data-anchor-id="what-a-front-office-should-do-with-this">What a front office should do with this</h2>
+<p>First, surplus is concentrated in rookie-scale contracts, which makes draft picks the cheapest source of production in the league. A team trying to contend should value its picks accordingly and plan its window around when those players are still on rookie deals.</p>
+<p>Second, the biggest overpayments are long contracts that run into players’ 30s. The age premium means teams are still paying for past performance, so shorter terms or declining salary structures reduce that risk.</p>
+<p>Third, the undrafted and second-round group is the one source of surplus not created by rookie-scale rules. Scouting outside the lottery for productive players on minimum deals is where a disciplined team can still find value that other teams miss.</p>
+</section>
+<section id="limitations" class="level2">
+<h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
+<p>VORP accumulates with playing time, and teams may give expensive players more minutes than their performance warrants; Staw and Hoang (1995) found this kind of sunk-cost effect for draft position in the NBA. That inflates the measured production of expensive players, so the surplus of cheap players is probably understated. Age is also only a proxy for contract type, and a single season is a noisy sample.</p>
+</section>
+<section id="takeaway" class="level2">
+<h2 class="anchored" data-anchor-id="takeaway">Takeaway</h2>
+<p>NBA salaries follow current production only loosely, and the gap is systematic: the league underpays young players because rookie contracts are fixed by rule, and overpays veterans for what they used to do. For a team working under a fixed cap, the cheapest wins are the ones it drafts or finds outside the first round.</p>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<ul>
+<li>Basketball-Reference. 2025-26 NBA advanced stats and team salary pages. <a href="https://www.basketball-reference.com/leagues/NBA_2026_advanced.html" class="uri">https://www.basketball-reference.com/leagues/NBA_2026_advanced.html</a></li>
+<li>Duan, N. (1983). Smearing estimate: A nonparametric retransformation method. <em>Journal of the American Statistical Association</em>, 78(383), 605-610.</li>
+<li>Staw, B. M., &amp; Hoang, H. (1995). Sunk costs in the NBA: Why draft order affects playing time and survival in professional basketball. <em>Administrative Science Quarterly</em>, 40(3), 474-494.</li>
+</ul>
+<p>Code, data and replication instructions: <a href="https://github.com/Peterjianghaowen/nba-salary-efficiency">github.com/Peterjianghaowen/nba-salary-efficiency</a></p>
 
 
 </section>

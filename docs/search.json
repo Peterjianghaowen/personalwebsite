@@ -39,35 +39,7 @@
     "href": "blog/index.html",
     "title": "Blog",
     "section": "",
-    "text": "One Theorem, Four Lemmas: The Envelope Theorem in Microeconomics\n\n\n\n\n\n\n\n\nSep 14, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nMy Second Blog Post\n\n\n\n\n\n\n\n\nJun 16, 2026\n\n\n\n\n\nNo matching items"
-  },
-  {
-    "objectID": "blog/posts/post1/Untitled.html",
-    "href": "blog/posts/post1/Untitled.html",
-    "title": "My First Blog Post",
-    "section": "",
-    "text": "This is my first blog post. Example \\(\\LaTeX\\) equation: \\(\\frac{1}{2}\\sum_{i=1}^nx_i\\)"
-  },
-  {
-    "objectID": "resume.html",
-    "href": "resume.html",
-    "title": "Resume",
-    "section": "",
-    "text": "Download PDF"
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Haowen Jiang",
-    "section": "",
-    "text": "Haowen Jiang\nUniversity of Pennsylvania\nMA student in Applied Economics and Data Science.\n\nQuick Links"
-  },
-  {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
-    "section": "",
-    "text": "About this site\n\n1 + 1\n\n[1] 2"
+    "text": "Are NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players\n\n\n\n\n\n\n\n\nSep 21, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nOne Theorem, Four Lemmas: The Envelope Theorem in Microeconomics\n\n\n\n\n\n\n\n\nSep 14, 2026\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "blog/posts/post1/index.html",
@@ -75,27 +47,6 @@
     "title": "One Theorem, Four Lemmas: The Envelope Theorem in Microeconomics",
     "section": "",
     "text": "Intermediate microeconomics hands you a pile of results that look unrelated: Shephard’s Lemma, Hotelling’s Lemma, Roy’s Identity. Each gets its own proof, its own diagram, its own place on the exam.\nThey are the same theorem. Once you see the envelope theorem, the other three are one-line substitutions."
-  },
-  {
-    "objectID": "blog/posts/post1/index.html#why-this-feels-wrong",
-    "href": "blog/posts/post1/index.html#why-this-feels-wrong",
-    "title": "Why Substitution Doesn’t Save You Money (At First)",
-    "section": "Why this feels wrong",
-    "text": "Why this feels wrong\nThe intuition that substitution should help isn’t wrong — it’s just second-order. Here’s the cleanest way to see it.\nFix a consumption bundle \\(x^{(k)}\\) and ask what it costs as \\(p_1\\) varies. The answer is \\(p \\cdot x^{(k)}\\), which is a straight line in \\(p_1\\) with slope \\(x_1^{(k)}\\). Every possible bundle gives you one such line.\nThe expenditure function is the lower envelope of all these lines: at each price, you pick whichever bundle is cheapest. So \\(e(p_1, u)\\) is the minimum over a family of straight lines — which makes it concave, and which means at any given price it’s tangent to whichever line is currently optimal.\nTangent means same slope. The slope of that line is \\(x_1^*\\). Hence Shephard.\n\nlibrary(ggplot2)\n\n# Cobb-Douglas u = x1^a * x2^(1-a), target utility u = 1\na &lt;- 0.5\nu_target &lt;- 1\np2 &lt;- 1\n\n# True expenditure function: e(p1,p2,u) = u * (p1/a)^a * (p2/(1-a))^(1-a)\ne_true &lt;- function(p1) u_target * (p1/a)^a * (p2/(1-a))^(1-a)\n\n# Hicksian demand for good 1: h1 = a*e/p1\nh1 &lt;- function(p1) a * e_true(p1) / p1\n\np_grid &lt;- seq(0.5, 4, length.out = 200)\n\n# Cost of holding the bundle that was optimal at price p0, as p1 varies\nfixed_bundle_line &lt;- function(p0) {\n  x1 &lt;- h1(p0)\n  x2 &lt;- (1 - a) * e_true(p0) / p2\n  data.frame(p1 = p_grid, cost = p_grid * x1 + p2 * x2, anchor = p0)\n}\n\nanchors &lt;- c(0.75, 1.25, 2, 3)\nlines_df &lt;- do.call(rbind, lapply(anchors, fixed_bundle_line))\nenv_df   &lt;- data.frame(p1 = p_grid, cost = e_true(p_grid))\n\nggplot() +\n  geom_line(data = lines_df,\n            aes(p1, cost, group = anchor),\n            colour = \"grey65\", linewidth = 0.4) +\n  geom_line(data = env_df, aes(p1, cost), linewidth = 1) +\n  coord_cartesian(ylim = c(0, 6)) +\n  labs(x = expression(p[1]), y = \"Expenditure\") +\n  theme_minimal(base_size = 12)\n\n\n\n\n\n\n\nFigure 1: The expenditure function as the lower envelope of fixed-bundle cost lines. Grey lines are the cost of holding a fixed bundle; the black curve is the cost of optimally re-choosing at every price.\n\n\n\n\n\nEach grey line is a rigid consumer who never adjusts. The black curve is you, re-optimising constantly. Notice that where a grey line touches the black curve, they don’t just meet — they graze. The gap opens up quadratically, not linearly.\nThat’s the resolution. Substitution does save you money. It just saves you an amount proportional to \\((\\Delta p)^2\\), which vanishes relative to the first-order cost \\(x_1 \\Delta p\\) when \\(\\Delta p\\) is small. At the margin, you were already optimising, so \\(\\partial \\mathcal{L}/\\partial x = 0\\), and the term \\(\\sum_i (\\partial x_i^*/\\partial p_1)\\) gets multiplied by zero.\nThis is the envelope theorem in general: when you differentiate an optimised value with respect to a parameter, you can ignore how the optimal choice shifts. Only the direct effect survives."
-  },
-  {
-    "objectID": "blog/posts/post1/index.html#why-it-matters-the-cpi-overstates-inflation",
-    "href": "blog/posts/post1/index.html#why-it-matters-the-cpi-overstates-inflation",
-    "title": "Why Substitution Doesn’t Save You Money (At First)",
-    "section": "Why it matters: the CPI overstates inflation",
-    "text": "Why it matters: the CPI overstates inflation\nThis isn’t just a classroom curiosity. The Consumer Price Index is (roughly) a Laspeyres index: it prices a fixed basket from some base period. In the figure above, that is a grey line.\nThe true cost-of-living change is the black curve. Since the envelope lies weakly below every line, a fixed-basket index systematically overstates how much more expensive it has become to reach the same standard of living. This is substitution bias.\n\n# Data: BLS Consumer Price Index, annual averages, 1982-84 = 100.\n# Series CUUR0000SAF1 (Food) and CUUR0000SA0E (Energy).\n# Source: U.S. Bureau of Labor Statistics, https://data.bls.gov/\ncpi &lt;- data.frame(\n  year   = 2019:2024,\n  food   = c(255.7, 267.3, 277.7, 305.6, 322.9, 331.0),\n  energy = c(212.9, 190.9, 237.0, 300.3, 285.4, 285.9)\n)\n\n# Normalise both series to 2019 = 1\ncpi$p_food   &lt;- cpi$food   / cpi$food[1]\ncpi$p_energy &lt;- cpi$energy / cpi$energy[1]\n\n# Assume Cobb-Douglas preferences with equal shares in the base year.\n# Laspeyres: cost of the 2019 basket at current prices.\ncpi$laspeyres &lt;- 0.5 * cpi$p_food + 0.5 * cpi$p_energy\n\n# True COLI under Cobb-Douglas: geometric mean of price relatives.\ncpi$true_coli &lt;- cpi$p_food^0.5 * cpi$p_energy^0.5\n\nplot_df &lt;- data.frame(\n  year  = rep(cpi$year, 2),\n  index = c(cpi$laspeyres, cpi$true_coli),\n  which = rep(c(\"Fixed basket (Laspeyres)\", \"True cost of living\"),\n              each = nrow(cpi))\n)\n\nggplot(plot_df, aes(year, index, colour = which)) +\n  geom_line(linewidth = 0.9) +\n  geom_point(size = 1.8) +\n  scale_colour_manual(values = c(\"grey45\", \"black\")) +\n  labs(x = NULL, y = \"Index (2019 = 1)\", colour = NULL) +\n  theme_minimal(base_size = 12) +\n  theme(legend.position = \"bottom\")\n\n\n\n\n\n\n\nFigure 2: Fixed-basket (Laspeyres) index vs. true cost-of-living index, US food and energy CPI, 2019–2024.\n\n\n\n\n\nThe two lines track each other closely in calm years and separate when relative prices move sharply — 2021–22, when energy prices spiked while food rose more moderately. That is exactly the envelope theorem’s prediction: the bias is second-order in the size of the price change.\nThe stakes are not small. The 1996 Boskin Commission concluded that the CPI overstated inflation by roughly 1.1 percentage points annually, with substitution bias a major component. Since Social Security payments are indexed to the CPI, that gap compounds into hundreds of billions of dollars over a decade."
-  },
-  {
-    "objectID": "blog/posts/post1/index.html#takeaway",
-    "href": "blog/posts/post1/index.html#takeaway",
-    "title": "One Theorem, Four Lemmas: The Envelope Theorem in Microeconomics",
-    "section": "Takeaway",
-    "text": "Takeaway\nWhen you differentiate a value function, ignore how the optimal choice moves and differentiate the Lagrangian directly. That single fact gives you Shephard, Hotelling, Roy and Le Chatelier — plus the reason a small tax has deadweight loss proportional to the square of the tax. Four lemmas, one theorem, and the FOC doing all the work."
   },
   {
     "objectID": "blog/posts/post1/index.html#the-unconstrained-case",
@@ -124,5 +75,96 @@
     "title": "One Theorem, Four Lemmas: The Envelope Theorem in Microeconomics",
     "section": "Why “envelope”?",
     "text": "Why “envelope”?\nThe name is literal. Fix a consumption bundle \\(x^{(k)}\\) and ask what it costs as \\(p_1\\) varies: the answer is \\(p \\cdot x^{(k)}\\), a straight line in \\(p_1\\) with slope \\(x_1^{(k)}\\). Every bundle gives one such line.\nThe expenditure function is the lower envelope of that family — at each price you take whichever bundle is cheapest. A minimum over straight lines is concave, and at every price it is tangent to whichever line is currently optimal. Tangent means equal slope, and that slope is \\(x_1^*\\). Shephard’s Lemma, read straight off the picture.\n\n\nShow code\nlibrary(ggplot2)\n\n# Cobb-Douglas: u = x1^a * x2^(1-a). All curves below are closed-form\na &lt;- 0.5; u_target &lt;- 1; p2 &lt;- 1\n\n# Expenditure function e(p1,p2,u) = u * (p1/a)^a * (p2/(1-a))^(1-a)\ne_true &lt;- function(p1) u_target * (p1/a)^a * (p2/(1-a))^(1-a)\n\n# Hicksian demand for good 1, from Shephard: h1 = a*e/p1\nh1 &lt;- function(p1) a * e_true(p1) / p1\n\np_grid &lt;- seq(0.5, 4, length.out = 200)\n\n# Cost of the bundle that was optimal at p0, evaluated at every p1\nfixed_bundle_line &lt;- function(p0) {\n  x1 &lt;- h1(p0)\n  x2 &lt;- (1 - a) * e_true(p0) / p2\n  data.frame(p1 = p_grid, cost = p_grid * x1 + p2 * x2, anchor = p0)\n}\n\nlines_df &lt;- do.call(rbind, lapply(c(0.75, 1.25, 2, 3), fixed_bundle_line))\nenv_df   &lt;- data.frame(p1 = p_grid, cost = e_true(p_grid))\n\nggplot() +\n  geom_line(data = lines_df, aes(p1, cost, group = anchor),\n            colour = \"grey65\", linewidth = 0.4) +\n  geom_line(data = env_df, aes(p1, cost), linewidth = 1) +\n  coord_cartesian(ylim = c(0, 6)) +\n  labs(x = expression(p[1]), y = \"Expenditure\") +\n  theme_minimal(base_size = 12)\n\n\n\n\n\n\n\n\nFigure 1: Grey lines: the cost of holding one fixed bundle as \\(p_1\\) varies. Black curve: the cost of re-optimising at every price. The black curve is their lower envelope, and grazes each line tangentially.\n\n\n\n\n\nEach grey line is a consumer who never adjusts. The black curve is one who re-optimises constantly. Where they touch, they graze — the gap opens quadratically, not linearly. That is the envelope theorem as a picture: at the optimum, small adjustments are free to first order.\nData. No external data. Every curve is generated from the closed-form Cobb-Douglas expenditure function in the code above; the only inputs are \\(a = 0.5\\), \\(\\bar u = 1\\), \\(p_2 = 1\\)."
+  },
+  {
+    "objectID": "blog/posts/post1/index.html#takeaway",
+    "href": "blog/posts/post1/index.html#takeaway",
+    "title": "One Theorem, Four Lemmas: The Envelope Theorem in Microeconomics",
+    "section": "Takeaway",
+    "text": "Takeaway\nWhen you differentiate a value function, ignore how the optimal choice moves and differentiate the Lagrangian directly. That single fact gives you Shephard, Hotelling, Roy and Le Chatelier — plus the reason a small tax has deadweight loss proportional to the square of the tax. Four lemmas, one theorem, and the FOC doing all the work."
+  },
+  {
+    "objectID": "resume.html",
+    "href": "resume.html",
+    "title": "Resume",
+    "section": "",
+    "text": "Download PDF"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Haowen Jiang",
+    "section": "",
+    "text": "Haowen Jiang\nUniversity of Pennsylvania\nMA student in Applied Economics and Data Science.\n\nQuick Links"
+  },
+  {
+    "objectID": "blog/posts/post2/index.html",
+    "href": "blog/posts/post2/index.html",
+    "title": "Are NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players",
+    "section": "",
+    "text": "Code\nlibrary(readr)\nlibrary(dplyr)\nlibrary(knitr)\n\n# All tables and figures come from the analysis repository\nbase &lt;- \"https://raw.githubusercontent.com/Peterjianghaowen/nba-salary-efficiency/main/\"\n\nnba       &lt;- read_csv(paste0(base, \"data/processed/nba_2026.csv\"))\ntop       &lt;- read_csv(paste0(base, \"results/tables/top_bargains.csv\"))\nby_age    &lt;- read_csv(paste0(base, \"results/tables/by_age_group.csv\"))\nmodel_fit &lt;- read_csv(paste0(base, \"results/tables/model_fit.csv\"))\nage_coefs &lt;- read_csv(paste0(base, \"results/tables/age_discount_robust.csv\"))\nrobust    &lt;- read_csv(paste0(base, \"results/tables/robustness.csv\"))\n\nest   &lt;- setNames(age_coefs$Estimate, age_coefs$term)\nyoung &lt;- exp(est[[\"age_group24 and under\"]]) - 1\nold   &lt;- exp(est[[\"age_group30 and over\"]]) - 1\nr2    &lt;- model_fit$r2[model_fit$model == \"Linear VORP\"]\npct   &lt;- function(x) paste0(round(abs(x) * 100), \"%\")"
+  },
+  {
+    "objectID": "blog/posts/post2/index.html#the-question",
+    "href": "blog/posts/post2/index.html#the-question",
+    "title": "Are NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players",
+    "section": "The question",
+    "text": "The question\nUnder the salary cap, every dollar a team spends on one player is a dollar it can’t spend on another. So the useful question for a front office is not who the best players are, but who delivers the most production per dollar. If salaries tracked on-court value closely, there would be no bargains to find. This post tests that: I scrape a full season of player statistics and salaries, estimate what the league pays for production, and measure how far each player sits from that rate."
+  },
+  {
+    "objectID": "blog/posts/post2/index.html#data",
+    "href": "blog/posts/post2/index.html#data",
+    "title": "Are NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players",
+    "section": "Data",
+    "text": "Data\nBoth datasets come from Basketball-Reference for the 2025-26 regular season: the league-wide advanced stats page, and the salary table on each of the 30 team pages. The site’s robots.txt allows these pages and sets a three-second crawl delay, and Sports Reference blocks clients sending more than 20 requests a minute, so the scraper waits four seconds between each of its 32 requests. No login or paywall is involved.\n\nadv_raw &lt;- read_html(paste0(base_url, \"/leagues/NBA_2026_advanced.html\")) |&gt;\n  html_element(\"table\") |&gt;\n  html_table()\n\nfor (tm in teams) {\n  salary_list[[tm]] &lt;- scrape_team_salary(tm)  # salary table sits inside an HTML comment\n  Sys.sleep(4)\n}\n\nCleaning took more work than scraping. Traded players appear once per team plus a combined row, and I kept the combined row. Names don’t always match across pages: suffixes like “Jr.” appear on one page but not the other, and in one case a Cyrillic letter looks identical to a Latin one. Players were matched on a normalised name key, with two remaining cases fixed by hand. Players on two-way contracts have no listed salary and drop out. Keeping players with at least 1,000 minutes leaves 278."
+  },
+  {
+    "objectID": "blog/posts/post2/index.html#method",
+    "href": "blog/posts/post2/index.html#method",
+    "title": "Are NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players",
+    "section": "Method",
+    "text": "Method\nProduction is measured by VORP (value over replacement player), a box-score estimate of a player’s total contribution above a freely available replacement.\nTo get a market rate, I regress log salary on VORP using only players aged 25 and over. Most of them signed their current deals in free agency, while many younger players are on rookie-scale contracts whose pay is set by draft position rather than negotiated. Applying this curve to every player gives a market value: roughly what a veteran with the same production earns. Surplus value is market value minus actual salary. Predictions are converted back to dollars with Duan’s smearing estimator and capped at the league’s highest salary, since no contract can exceed the max."
+  },
+  {
+    "objectID": "blog/posts/post2/index.html#results",
+    "href": "blog/posts/post2/index.html#results",
+    "title": "Are NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players",
+    "section": "Results",
+    "text": "Results\n\n\nCode\ninclude_graphics(paste0(base, \"results/figures/fig1_market_curve.png\"))\n\n\n\n\n\nFigure 1. Salary against VORP. The curve and 80% prediction band are fitted on players aged 25+.\n\n\n\n\nThe first result is how loose the relationship is. Even among veterans, this season’s VORP explains only about 19% of the variation in log salary. Contracts are signed years in advance, based on past performance and expected growth or decline, so one season is a noisy guide to pay. The five labelled players in the upper left are all in their 30s, on large contracts that their production this season came nowhere near justifying.\n\n\nCode\ninclude_graphics(paste0(base, \"results/figures/fig2_top_bargains.png\"))\n\n\n\n\n\nFigure 2. The 15 largest surplus values, coloured by age group.\n\n\n\n\n\n\nCode\ntop |&gt;\n  slice_head(n = 10) |&gt;\n  select(player, team, age, vorp, salary_m, market_value_m, surplus_m) |&gt;\n  kable(col.names = c(\"Player\", \"Team\", \"Age\", \"VORP\", \"Salary ($M)\",\n                      \"Market value ($M)\", \"Surplus ($M)\"),\n        caption = \"Table 1. Top 10 surplus values\")\n\n\n\nTable 1. Top 10 surplus values\n\n\n\n\n\n\n\n\n\n\n\nPlayer\nTeam\nAge\nVORP\nSalary (\\(M)| Market value (\\)M)\nSurplus ($M)\n\n\n\n\n\nVictor Wembanyama\nSAS\n22\n6.0\n13.38\n59.61\n46.23\n\n\nJalen Duren\nDET\n22\n3.5\n6.48\n36.00\n29.51\n\n\nAmen Thompson\nHOU\n23\n3.4\n9.69\n34.86\n25.17\n\n\nCollin Gillespie\nPHO\n26\n2.6\n2.30\n27.00\n24.70\n\n\nNeemias Queta\nBOS\n26\n2.4\n2.35\n25.32\n22.97\n\n\nKon Knueppel\nCHO\n20\n3.1\n10.02\n31.68\n21.66\n\n\nDeni Avdija\nPOR\n25\n3.5\n14.38\n36.00\n21.62\n\n\nPayton Pritchard\nBOS\n28\n2.8\n7.23\n28.78\n21.55\n\n\nShai Gilgeous-Alexander\nOKC\n27\n7.8\n38.33\n59.61\n21.27\n\n\nSandro Mamukelashvili\nTOR\n26\n2.1\n2.46\n23.01\n20.55\n\n\n\n\n\nVictor Wembanyama tops the list: his production would command a max contract on the open market, but his rookie deal pays $13.38 million. 7 of the top 15 are 24 or younger. Most of the rest are 25-29 on small contracts, and several of them (Collin Gillespie, Neemias Queta, Sandro Mamukelashvili) were undrafted or second-round picks, who get no rookie-scale guarantee and often sign cheap deals before breaking out.\nThe age pattern holds up formally. Holding VORP fixed, players 24 and under earn about 38% less than players aged 25-29, and players 30 and over earn about 68% more. Both differences are significant at the 0.1% level with heteroskedasticity-robust standard errors.\n\n\nCode\ninclude_graphics(paste0(base, \"results/figures/fig3_surplus_by_age.png\"))\n\n\n\n\n\nFigure 3. Surplus value by age group. The dashed line marks salary equal to market value.\n\n\n\n\n\n\nCode\nby_age |&gt;\n  mutate(share_bargain  = pct(share_bargain),\n         share_overpaid = pct(share_overpaid)) |&gt;\n  kable(col.names = c(\"Age group\", \"Players\", \"Median salary ($M)\", \"Median VORP\",\n                      \"Median surplus ($M)\", \"Share underpaid\", \"Share overpaid\"),\n        caption = \"Table 2. Summary by age group. Under- and overpaid mean outside the 80% prediction band.\")\n\n\n\nTable 2. Summary by age group. Under- and overpaid mean outside the 80% prediction band.\n\n\n\n\n\n\n\n\n\n\n\nAge group\nPlayers\nMedian salary (\\(M)| Median VORP| Median surplus (\\)M)\nShare underpaid\nShare overpaid\n\n\n\n\n\n\n24 and under\n109\n5.46\n0.50\n8.71\n22%\n0%\n\n\n25-29\n112\n12.92\n0.95\n4.35\n21%\n2%\n\n\n30 and over\n57\n21.12\n1.00\n-2.72\n9%\n7%\n\n\n\n\n\nThe rankings are not an artifact of the production measure: repeating the analysis with Win Shares gives a rank correlation of 0.919 with the VORP results."
+  },
+  {
+    "objectID": "blog/posts/post2/index.html#what-a-front-office-should-do-with-this",
+    "href": "blog/posts/post2/index.html#what-a-front-office-should-do-with-this",
+    "title": "Are NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players",
+    "section": "What a front office should do with this",
+    "text": "What a front office should do with this\nFirst, surplus is concentrated in rookie-scale contracts, which makes draft picks the cheapest source of production in the league. A team trying to contend should value its picks accordingly and plan its window around when those players are still on rookie deals.\nSecond, the biggest overpayments are long contracts that run into players’ 30s. The age premium means teams are still paying for past performance, so shorter terms or declining salary structures reduce that risk.\nThird, the undrafted and second-round group is the one source of surplus not created by rookie-scale rules. Scouting outside the lottery for productive players on minimum deals is where a disciplined team can still find value that other teams miss."
+  },
+  {
+    "objectID": "blog/posts/post2/index.html#limitations",
+    "href": "blog/posts/post2/index.html#limitations",
+    "title": "Are NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players",
+    "section": "Limitations",
+    "text": "Limitations\nVORP accumulates with playing time, and teams may give expensive players more minutes than their performance warrants; Staw and Hoang (1995) found this kind of sunk-cost effect for draft position in the NBA. That inflates the measured production of expensive players, so the surplus of cheap players is probably understated. Age is also only a proxy for contract type, and a single season is a noisy sample."
+  },
+  {
+    "objectID": "blog/posts/post2/index.html#takeaway",
+    "href": "blog/posts/post2/index.html#takeaway",
+    "title": "Are NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players",
+    "section": "Takeaway",
+    "text": "Takeaway\nNBA salaries follow current production only loosely, and the gap is systematic: the league underpays young players because rookie contracts are fixed by rule, and overpays veterans for what they used to do. For a team working under a fixed cap, the cheapest wins are the ones it drafts or finds outside the first round."
+  },
+  {
+    "objectID": "blog/posts/post2/index.html#references",
+    "href": "blog/posts/post2/index.html#references",
+    "title": "Are NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players",
+    "section": "References",
+    "text": "References\n\nBasketball-Reference. 2025-26 NBA advanced stats and team salary pages. https://www.basketball-reference.com/leagues/NBA_2026_advanced.html\nDuan, N. (1983). Smearing estimate: A nonparametric retransformation method. Journal of the American Statistical Association, 78(383), 605-610.\nStaw, B. M., & Hoang, H. (1995). Sunk costs in the NBA: Why draft order affects playing time and survival in professional basketball. Administrative Science Quarterly, 40(3), 474-494.\n\nCode, data and replication instructions: github.com/Peterjianghaowen/nba-salary-efficiency"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site\n\n1 + 1\n\n[1] 2"
   }
 ]

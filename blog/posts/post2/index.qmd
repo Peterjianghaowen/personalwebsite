@@ -1,9 +1,133 @@
 ---
-title: "My Second Blog Post"
-date: 2026-06-16
+title: "Are NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players"
+date: 2026-09-21
 categories:
-  - opinion
-  - labor market
+  - web scraping
+  - economics
+  - R
+format:
+  html:
+    code-fold: true
+execute:
+  warning: false
+  message: false
 ---
 
-## This is my second blog post.
+```{r}
+#| label: setup
+library(readr)
+library(dplyr)
+library(knitr)
+
+# All tables and figures come from the analysis repository
+base <- "https://raw.githubusercontent.com/Peterjianghaowen/nba-salary-efficiency/main/"
+
+nba       <- read_csv(paste0(base, "data/processed/nba_2026.csv"))
+top       <- read_csv(paste0(base, "results/tables/top_bargains.csv"))
+by_age    <- read_csv(paste0(base, "results/tables/by_age_group.csv"))
+model_fit <- read_csv(paste0(base, "results/tables/model_fit.csv"))
+age_coefs <- read_csv(paste0(base, "results/tables/age_discount_robust.csv"))
+robust    <- read_csv(paste0(base, "results/tables/robustness.csv"))
+
+est   <- setNames(age_coefs$Estimate, age_coefs$term)
+young <- exp(est[["age_group24 and under"]]) - 1
+old   <- exp(est[["age_group30 and over"]]) - 1
+r2    <- model_fit$r2[model_fit$model == "Linear VORP"]
+pct   <- function(x) paste0(round(abs(x) * 100), "%")
+```
+
+## The question
+
+Under the salary cap, every dollar a team spends on one player is a dollar it can't spend on another. So the useful question for a front office is not who the best players are, but who delivers the most production per dollar. If salaries tracked on-court value closely, there would be no bargains to find. This post tests that: I scrape a full season of player statistics and salaries, estimate what the league pays for production, and measure how far each player sits from that rate.
+
+## Data
+
+Both datasets come from Basketball-Reference for the 2025-26 regular season: the league-wide advanced stats page, and the salary table on each of the 30 team pages. The site's robots.txt allows these pages and sets a three-second crawl delay, and Sports Reference blocks clients sending more than 20 requests a minute, so the scraper waits four seconds between each of its 32 requests. No login or paywall is involved.
+
+```{r}
+#| eval: false
+#| code-fold: false
+adv_raw <- read_html(paste0(base_url, "/leagues/NBA_2026_advanced.html")) |>
+  html_element("table") |>
+  html_table()
+
+for (tm in teams) {
+  salary_list[[tm]] <- scrape_team_salary(tm)  # salary table sits inside an HTML comment
+  Sys.sleep(4)
+}
+```
+
+Cleaning took more work than scraping. Traded players appear once per team plus a combined row, and I kept the combined row. Names don't always match across pages: suffixes like "Jr." appear on one page but not the other, and in one case a Cyrillic letter looks identical to a Latin one. Players were matched on a normalised name key, with two remaining cases fixed by hand. Players on two-way contracts have no listed salary and drop out. Keeping players with at least 1,000 minutes leaves `r nrow(nba)`.
+
+## Method
+
+Production is measured by VORP (value over replacement player), a box-score estimate of a player's total contribution above a freely available replacement.
+
+To get a market rate, I regress log salary on VORP using only players aged 25 and over. Most of them signed their current deals in free agency, while many younger players are on rookie-scale contracts whose pay is set by draft position rather than negotiated. Applying this curve to every player gives a **market value**: roughly what a veteran with the same production earns. **Surplus value** is market value minus actual salary. Predictions are converted back to dollars with Duan's smearing estimator and capped at the league's highest salary, since no contract can exceed the max.
+
+## Results
+
+```{r}
+#| fig-cap: "Figure 1. Salary against VORP. The curve and 80% prediction band are fitted on players aged 25+."
+include_graphics(paste0(base, "results/figures/fig1_market_curve.png"))
+```
+
+The first result is how loose the relationship is. Even among veterans, this season's VORP explains only about `r pct(r2)` of the variation in log salary. Contracts are signed years in advance, based on past performance and expected growth or decline, so one season is a noisy guide to pay. The five labelled players in the upper left are all in their 30s, on large contracts that their production this season came nowhere near justifying.
+
+```{r}
+#| fig-cap: "Figure 2. The 15 largest surplus values, coloured by age group."
+include_graphics(paste0(base, "results/figures/fig2_top_bargains.png"))
+```
+
+```{r}
+top |>
+  slice_head(n = 10) |>
+  select(player, team, age, vorp, salary_m, market_value_m, surplus_m) |>
+  kable(col.names = c("Player", "Team", "Age", "VORP", "Salary ($M)",
+                      "Market value ($M)", "Surplus ($M)"),
+        caption = "Table 1. Top 10 surplus values")
+```
+
+Victor Wembanyama tops the list: his production would command a max contract on the open market, but his rookie deal pays $`r top$salary_m[1]` million. `r sum(top$age <= 24)` of the top 15 are 24 or younger. Most of the rest are 25-29 on small contracts, and several of them (Collin Gillespie, Neemias Queta, Sandro Mamukelashvili) were undrafted or second-round picks, who get no rookie-scale guarantee and often sign cheap deals before breaking out.
+
+The age pattern holds up formally. Holding VORP fixed, players 24 and under earn about `r pct(young)` less than players aged 25-29, and players 30 and over earn about `r pct(old)` more. Both differences are significant at the 0.1% level with heteroskedasticity-robust standard errors.
+
+```{r}
+#| fig-cap: "Figure 3. Surplus value by age group. The dashed line marks salary equal to market value."
+include_graphics(paste0(base, "results/figures/fig3_surplus_by_age.png"))
+```
+
+```{r}
+by_age |>
+  mutate(share_bargain  = pct(share_bargain),
+         share_overpaid = pct(share_overpaid)) |>
+  kable(col.names = c("Age group", "Players", "Median salary ($M)", "Median VORP",
+                      "Median surplus ($M)", "Share underpaid", "Share overpaid"),
+        caption = "Table 2. Summary by age group. Under- and overpaid mean outside the 80% prediction band.")
+```
+
+The rankings are not an artifact of the production measure: repeating the analysis with Win Shares gives a rank correlation of `r robust$rank_corr` with the VORP results.
+
+## What a front office should do with this
+
+First, surplus is concentrated in rookie-scale contracts, which makes draft picks the cheapest source of production in the league. A team trying to contend should value its picks accordingly and plan its window around when those players are still on rookie deals.
+
+Second, the biggest overpayments are long contracts that run into players' 30s. The age premium means teams are still paying for past performance, so shorter terms or declining salary structures reduce that risk.
+
+Third, the undrafted and second-round group is the one source of surplus not created by rookie-scale rules. Scouting outside the lottery for productive players on minimum deals is where a disciplined team can still find value that other teams miss.
+
+## Limitations
+
+VORP accumulates with playing time, and teams may give expensive players more minutes than their performance warrants; Staw and Hoang (1995) found this kind of sunk-cost effect for draft position in the NBA. That inflates the measured production of expensive players, so the surplus of cheap players is probably understated. Age is also only a proxy for contract type, and a single season is a noisy sample.
+
+## Takeaway
+
+NBA salaries follow current production only loosely, and the gap is systematic: the league underpays young players because rookie contracts are fixed by rule, and overpays veterans for what they used to do. For a team working under a fixed cap, the cheapest wins are the ones it drafts or finds outside the first round.
+
+## References
+
+- Basketball-Reference. 2025-26 NBA advanced stats and team salary pages. <https://www.basketball-reference.com/leagues/NBA_2026_advanced.html>
+- Duan, N. (1983). Smearing estimate: A nonparametric retransformation method. *Journal of the American Statistical Association*, 78(383), 605-610.
+- Staw, B. M., & Hoang, H. (1995). Sunk costs in the NBA: Why draft order affects playing time and survival in professional basketball. *Administrative Science Quarterly*, 40(3), 474-494.
+
+Code, data and replication instructions: [github.com/Peterjianghaowen/nba-salary-efficiency](https://github.com/Peterjianghaowen/nba-salary-efficiency)
