@@ -1,0 +1,117 @@
+---
+title: "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026"
+date: 2026-09-26
+categories:
+  - labor markets
+  - economics
+  - R
+format:
+  html:
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+library(readr)
+library(dplyr)
+library(tidyr)
+library(plotly)
+
+# All data come from the analysis repository
+base <- "https://raw.githubusercontent.com/Peterjianghaowen/blog3-cps/main/"
+
+national <- read_csv(paste0(base, "data/processed/national_monthly.csv"))
+state    <- read_csv(paste0(base, "data/processed/state_annual.csv"))
+lh       <- read_csv(paste0(base, "data/processed/lh_share_2019.csv"))
+
+pct <- function(x) sprintf("%.1f%%", 100 * x)
+pp  <- function(x) sprintf("%.1f percentage points", 100 * x)
+
+feb20  <- national |> filter(YEAR == 2020, MONTH == 2)
+apr20  <- national |> filter(YEAR == 2020, MONTH == 4)
+latest <- national |> slice_tail(n = 1)
+
+shock <- state |>
+  filter(YEAR %in% c(2019, 2020)) |>
+  select(state, YEAR, ur) |>
+  pivot_wider(names_from = YEAR, values_from = ur, names_prefix = "ur_") |>
+  mutate(ur_change = ur_2020 - ur_2019) |>
+  left_join(lh, by = "state")
+
+top3   <- shock |> arrange(desc(ur_change)) |> slice(1:3)
+cor_all <- cor(shock$lh_share, shock$ur_change)
+cor_ex  <- shock |> filter(!state %in% c("Nevada", "Hawaii")) |>
+  with(cor(lh_share, ur_change))
+```
+
+## The question
+
+In the spring of 2020 the U.S. unemployment rate rose more in two months than it did over the entire Great Recession. But a national average hides a lot. A worker in Nebraska and a worker in Nevada lived through very different labor markets. This post asks three questions: how large was the shock nationally, which states were hit hardest and how fast they recovered, and whether a state's industry mix helps explain the differences.
+
+## Data and method
+
+I use IPUMS CPS basic monthly microdata from January 2019 to `r month.name[latest$MONTH]` `r latest$YEAR`, covering about 7.6 million person-month observations of civilians aged 16 and over. Every statistic is weighted with the CPS final person weight (`WTFINL`), so the numbers describe the U.S. population rather than the raw sample.
+
+- **Unemployment rate** = unemployed / labor force
+- **Labor force participation rate (LFPR)** = labor force / civilian population 16+
+
+The series are not seasonally adjusted, so they differ slightly from the BLS headline figures. State estimates are annual averages of monthly data, because single-month samples in small states are noisy. October 2025 is missing because the CPS was not collected during the federal government shutdown, and 2026 covers January to `r month.name[latest$MONTH]` only.
+
+## 1. The national shock
+
+![](https://raw.githubusercontent.com/Peterjianghaowen/blog3-cps/main/output/fig1_national.png)
+
+Unemployment jumped from `r pct(feb20$ur)` in February 2020 to `r pct(apr20$ur)` in April. At the same time, labor force participation fell from `r pct(feb20$lfpr)` to `r pct(apr20$lfpr)`. That second drop matters: many people who lost jobs stopped looking for work and so were not counted as unemployed at all. The headline unemployment rate therefore understates how much the labor market contracted. By `r month.name[latest$MONTH]` `r latest$YEAR`, unemployment stood at `r pct(latest$ur)` and participation at `r pct(latest$lfpr)`.
+
+## 2. Which states were hit hardest?
+
+The map below shows each state's annual unemployment rate. Drag the slider or press Play to move through the years, and hover over a state for its unemployment rate, participation rate, and CPS sample size. The color scale is fixed across years, so darker always means higher unemployment.
+
+```{r}
+#| label: map
+state_abb <- c(setNames(state.abb, state.name), "District of Columbia" = "DC")
+
+map_df <- state |>
+  mutate(code = state_abb[state],
+         year_lab = ifelse(YEAR == 2026, "2026*", as.character(YEAR)))
+
+plot_geo(map_df, locationmode = "USA-states") |>
+  add_trace(
+    type = "choropleth",
+    locations = ~code, z = ~ur, frame = ~year_lab,
+    zmin = min(map_df$ur), zmax = max(map_df$ur),
+    colors = viridisLite::magma(100, direction = -1),
+    text = ~sprintf("<b>%s, %s</b><br>Unemployment rate: %.1f%%<br>LFPR: %.1f%%<br>Sample size: %s",
+                    state, year_lab, ur * 100, lfpr * 100, format(n, big.mark = ",")),
+    hoverinfo = "text",
+    marker = list(line = list(color = "white", width = 0.5)),
+    colorbar = list(title = "Unemployment<br>rate", tickformat = ".0%")
+  ) |>
+  layout(geo = list(scope = "usa", projection = list(type = "albers usa"))) |>
+  animation_opts(frame = 800, redraw = TRUE) |>
+  animation_slider(currentvalue = list(prefix = "Year: ")) |>
+  config(displayModeBar = FALSE)
+```
+
+The heatmap shows every state and year at once, with states ordered by their 2020 unemployment rate.
+
+![](https://raw.githubusercontent.com/Peterjianghaowen/blog3-cps/main/output/fig2_state_heatmap.png)
+
+Two patterns stand out. First, the shock was highly uneven. Between 2019 and 2020, unemployment rose by `r pp(top3$ur_change[1])` in `r top3$state[1]`, `r pp(top3$ur_change[2])` in `r top3$state[2]`, and `r pp(top3$ur_change[3])` in `r top3$state[3]`, while states in the Great Plains saw much smaller increases. Second, the recovery was fast: by 2022, most states were back close to their 2019 levels.
+
+## 3. Does industry mix explain the differences?
+
+A natural hypothesis is that states more dependent on in-person services were hit harder, since restaurants, hotels, and entertainment venues shut down first. To test this, I measure each state's pre-pandemic exposure as the share of its workers employed in leisure and hospitality in 2019.
+
+![](https://raw.githubusercontent.com/Peterjianghaowen/blog3-cps/main/output/fig3_lh_shock.png)
+
+The relationship is strongly positive, with a correlation of `r round(cor_all, 2)`. But much of this comes from two outliers: Nevada and Hawaii, whose economies depend heavily on tourism. Dropping them, the correlation falls to `r round(cor_ex, 2)`. Industry mix still matters, but it is only part of the story. States such as Massachusetts, New Jersey, California, and Michigan had average leisure and hospitality shares yet saw large increases in unemployment. Stricter and longer lockdowns in the Northeast and on the West Coast, and Michigan's exposure to auto manufacturing shutdowns, are plausible explanations that this data cannot separate.
+
+## Takeaway
+
+The COVID-19 labor market shock was national in timing but local in severity. States whose economies relied on tourism and in-person services suffered the largest increases in unemployment, with Nevada and Hawaii as extreme cases. Outside those two states, industry mix explains only a modest part of the variation, which suggests that policy responses and other features of local economies also shaped how hard each state was hit. For policymakers, the lesson is that a single national unemployment rate is a poor guide to where support is most needed during a sector-specific shock.
+
+*Code and data: [github.com/Peterjianghaowen/blog3-cps](https://github.com/Peterjianghaowen/blog3-cps). Data source: IPUMS CPS, University of Minnesota, www.ipums.org.*
