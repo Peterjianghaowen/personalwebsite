@@ -39,7 +39,56 @@
     "href": "blog/index.html",
     "title": "Blog",
     "section": "",
-    "text": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026\n\n\n\n\n\n\n\n\nSep 26, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nAre NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players\n\n\n\n\n\n\n\n\nSep 21, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nOne Theorem, Four Lemmas: The Envelope Theorem in Microeconomics\n\n\n\n\n\n\n\n\nSep 14, 2026\n\n\n\n\n\nNo matching items"
+    "text": "Did Brexit Leave the UK Behind? Output, Investment, and Trade Against the G7\n\n\n\n\n\n\n\n\nOct 5, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nWhere Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026\n\n\n\n\n\n\n\n\nSep 26, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nAre NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players\n\n\n\n\n\n\n\n\nSep 21, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nOne Theorem, Four Lemmas: The Envelope Theorem in Microeconomics\n\n\n\n\n\n\n\n\nSep 14, 2026\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "blog/posts/post3/index.html",
+    "href": "blog/posts/post3/index.html",
+    "title": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026",
+    "section": "",
+    "text": "Code\nlibrary(readr)\nlibrary(dplyr)\nlibrary(tidyr)\nlibrary(plotly)\n\n# All data come from the analysis repository\nbase &lt;- \"https://raw.githubusercontent.com/Peterjianghaowen/blog3-cps/main/\"\n\nnational &lt;- read_csv(paste0(base, \"data/processed/national_monthly.csv\"))\nstate    &lt;- read_csv(paste0(base, \"data/processed/state_annual.csv\"))\nlh       &lt;- read_csv(paste0(base, \"data/processed/lh_share_2019.csv\"))\n\npct &lt;- function(x) sprintf(\"%.1f%%\", 100 * x)\npp  &lt;- function(x) sprintf(\"%.1f percentage points\", 100 * x)\n\nfeb20  &lt;- national |&gt; filter(YEAR == 2020, MONTH == 2)\napr20  &lt;- national |&gt; filter(YEAR == 2020, MONTH == 4)\nlatest &lt;- national |&gt; slice_tail(n = 1)\n\nshock &lt;- state |&gt;\n  filter(YEAR %in% c(2019, 2020)) |&gt;\n  select(state, YEAR, ur) |&gt;\n  pivot_wider(names_from = YEAR, values_from = ur, names_prefix = \"ur_\") |&gt;\n  mutate(ur_change = ur_2020 - ur_2019) |&gt;\n  left_join(lh, by = \"state\")\n\ntop3   &lt;- shock |&gt; arrange(desc(ur_change)) |&gt; slice(1:3)\ncor_all &lt;- cor(shock$lh_share, shock$ur_change)\ncor_ex  &lt;- shock |&gt; filter(!state %in% c(\"Nevada\", \"Hawaii\")) |&gt;\n  with(cor(lh_share, ur_change))"
+  },
+  {
+    "objectID": "blog/posts/post3/index.html#the-question",
+    "href": "blog/posts/post3/index.html#the-question",
+    "title": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026",
+    "section": "The question",
+    "text": "The question\nIn the spring of 2020 the U.S. unemployment rate rose more in two months than it did over the entire Great Recession. But a national average hides a lot. A worker in Nebraska and a worker in Nevada lived through very different labor markets. This post asks three questions: how large was the shock nationally, which states were hit hardest and how fast they recovered, and whether a state’s industry mix helps explain the differences."
+  },
+  {
+    "objectID": "blog/posts/post3/index.html#data-and-method",
+    "href": "blog/posts/post3/index.html#data-and-method",
+    "title": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026",
+    "section": "Data and method",
+    "text": "Data and method\nI use IPUMS CPS basic monthly microdata from January 2019 to August 2026, covering about 7.6 million person-month observations of civilians aged 16 and over. Every statistic is weighted with the CPS final person weight (WTFINL), so the numbers describe the U.S. population rather than the raw sample.\n\nUnemployment rate = unemployed / labor force\nLabor force participation rate (LFPR) = labor force / civilian population 16+\n\nThe series are not seasonally adjusted, so they differ slightly from the BLS headline figures. State estimates are annual averages of monthly data, because single-month samples in small states are noisy. October 2025 is missing because the CPS was not collected during the federal government shutdown, and 2026 covers January to August only."
+  },
+  {
+    "objectID": "blog/posts/post3/index.html#the-national-shock",
+    "href": "blog/posts/post3/index.html#the-national-shock",
+    "title": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026",
+    "section": "1. The national shock",
+    "text": "1. The national shock\n\nUnemployment jumped from 3.8% in February 2020 to 14.5% in April. At the same time, labor force participation fell from 63.4% to 60.1%. That second drop matters: many people who lost jobs stopped looking for work and so were not counted as unemployed at all. The headline unemployment rate therefore understates how much the labor market contracted. By August 2026, unemployment stood at 4.3% and participation at 62.1%."
+  },
+  {
+    "objectID": "blog/posts/post3/index.html#which-states-were-hit-hardest",
+    "href": "blog/posts/post3/index.html#which-states-were-hit-hardest",
+    "title": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026",
+    "section": "2. Which states were hit hardest?",
+    "text": "2. Which states were hit hardest?\nThe map below shows each state’s annual unemployment rate. Drag the slider or press Play to move through the years, and hover over a state for its unemployment rate, participation rate, and CPS sample size. The color scale is fixed across years, so darker always means higher unemployment.\n\n\nCode\nstate_abb &lt;- c(setNames(state.abb, state.name), \"District of Columbia\" = \"DC\")\n\nmap_df &lt;- state |&gt;\n  mutate(code = state_abb[state],\n         year_lab = ifelse(YEAR == 2026, \"2026*\", as.character(YEAR)))\n\nplot_geo(map_df, locationmode = \"USA-states\") |&gt;\n  add_trace(\n    type = \"choropleth\",\n    locations = ~code, z = ~ur, frame = ~year_lab,\n    zmin = min(map_df$ur), zmax = max(map_df$ur),\n    colors = viridisLite::magma(100, direction = -1),\n    text = ~sprintf(\"&lt;b&gt;%s, %s&lt;/b&gt;&lt;br&gt;Unemployment rate: %.1f%%&lt;br&gt;LFPR: %.1f%%&lt;br&gt;Sample size: %s\",\n                    state, year_lab, ur * 100, lfpr * 100, format(n, big.mark = \",\")),\n    hoverinfo = \"text\",\n    marker = list(line = list(color = \"white\", width = 0.5)),\n    colorbar = list(title = \"Unemployment&lt;br&gt;rate\", tickformat = \".0%\")\n  ) |&gt;\n  layout(geo = list(scope = \"usa\", projection = list(type = \"albers usa\"))) |&gt;\n  animation_opts(frame = 800, redraw = TRUE) |&gt;\n  animation_slider(currentvalue = list(prefix = \"Year: \")) |&gt;\n  config(displayModeBar = FALSE)\n\n\n\n\n\n\nThe heatmap shows every state and year at once, with states ordered by their 2020 unemployment rate.\n\nTwo patterns stand out. First, the shock was highly uneven. Between 2019 and 2020, unemployment rose by 9.3 percentage points in Nevada, 8.8 percentage points in Hawaii, and 6.5 percentage points in Massachusetts, while states in the Great Plains saw much smaller increases. Second, the recovery was fast: by 2022, most states were back close to their 2019 levels."
+  },
+  {
+    "objectID": "blog/posts/post3/index.html#does-industry-mix-explain-the-differences",
+    "href": "blog/posts/post3/index.html#does-industry-mix-explain-the-differences",
+    "title": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026",
+    "section": "3. Does industry mix explain the differences?",
+    "text": "3. Does industry mix explain the differences?\nA natural hypothesis is that states more dependent on in-person services were hit harder, since restaurants, hotels, and entertainment venues shut down first. To test this, I measure each state’s pre-pandemic exposure as the share of its workers employed in leisure and hospitality in 2019.\n\nThe relationship is strongly positive, with a correlation of 0.68. But much of this comes from two outliers: Nevada and Hawaii, whose economies depend heavily on tourism. Dropping them, the correlation falls to 0.3. Industry mix still matters, but it is only part of the story. States such as Massachusetts, New Jersey, California, and Michigan had average leisure and hospitality shares yet saw large increases in unemployment. Stricter and longer lockdowns in the Northeast and on the West Coast, and Michigan’s exposure to auto manufacturing shutdowns, are plausible explanations that this data cannot separate."
+  },
+  {
+    "objectID": "blog/posts/post3/index.html#takeaway",
+    "href": "blog/posts/post3/index.html#takeaway",
+    "title": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026",
+    "section": "Takeaway",
+    "text": "Takeaway\nThe COVID-19 labor market shock was national in timing but local in severity. States whose economies relied on tourism and in-person services suffered the largest increases in unemployment, with Nevada and Hawaii as extreme cases. Outside those two states, industry mix explains only a modest part of the variation, which suggests that policy responses and other features of local economies also shaped how hard each state was hit. For policymakers, the lesson is that a single national unemployment rate is a poor guide to where support is most needed during a sector-specific shock.\nCode and data: github.com/Peterjianghaowen/blog3-cps. Data source: IPUMS CPS, University of Minnesota, www.ipums.org."
   },
   {
     "objectID": "blog/posts/post1/index.html",
@@ -161,59 +210,73 @@
     "text": "References\n\nBasketball-Reference. 2025-26 NBA advanced stats and team salary pages. https://www.basketball-reference.com/leagues/NBA_2026_advanced.html\nDuan, N. (1983). Smearing estimate: A nonparametric retransformation method. Journal of the American Statistical Association, 78(383), 605-610.\nStaw, B. M., & Hoang, H. (1995). Sunk costs in the NBA: Why draft order affects playing time and survival in professional basketball. Administrative Science Quarterly, 40(3), 474-494.\n\nCode, data and replication instructions: github.com/Peterjianghaowen/nba-salary-efficiency"
   },
   {
+    "objectID": "blog/posts/post4/index.html",
+    "href": "blog/posts/post4/index.html",
+    "title": "Did Brexit Leave the UK Behind? Output, Investment, and Trade Against the G7",
+    "section": "",
+    "text": "Code\nlibrary(readr)\nlibrary(dplyr)\nlibrary(plotly)\n\n# All data come from the analysis repository\nbase &lt;- \"https://raw.githubusercontent.com/Peterjianghaowen/blog4-brexit/main/\"\n\ngap   &lt;- read_csv(paste0(base, \"results/uk_vs_peers_gap.csv\"))\npanel &lt;- read_csv(paste0(base, \"data/processed/g7_panel.csv\"))\n\n# Look up one number: measure m, year y, column uk / peer / gap\nval &lt;- function(m, y, col = \"gap\") gap[[col]][gap$measure == m & gap$year == y]\nf1  &lt;- function(x) sprintf(\"%.1f\", abs(x))\n\nyr_gdp   &lt;- max(gap$year[gap$measure == \"gdp_pc_idx\"])\nyr_other &lt;- max(gap$year[gap$measure == \"invest_chg\"])\n\n# Largest GDP shortfall between the financial crisis and the referendum\npre &lt;- gap |&gt;\n  filter(measure == \"gdp_pc_idx\", year &gt;= 2008, year &lt;= 2015) |&gt;\n  slice_min(gap, n = 1)\n\n# Where the UK ranks among the seven on growth since 2016\nrank_uk &lt;- panel |&gt;\n  filter(year == yr_gdp) |&gt;\n  mutate(rank = rank(-gdp_pc_idx)) |&gt;\n  filter(iso2c == \"GB\") |&gt;\n  pull(rank)"
+  },
+  {
+    "objectID": "blog/posts/post4/index.html#the-question",
+    "href": "blog/posts/post4/index.html#the-question",
+    "title": "Did Brexit Leave the UK Behind? Output, Investment, and Trade Against the G7",
+    "section": "The question",
+    "text": "The question\nIn June 2016 the UK voted to leave the European Union. It formally left in January 2020 and exited the single market and customs union at the end of that year. Ten years after the vote, economists still disagree about what it cost. The difficulty is that we never observe the UK that stayed.\nThis post takes a simple approach to that problem. I compare the UK with the other six G7 economies, before and after the referendum, on three measures where Brexit should show up if it mattered: output, investment, and trade. If the UK tracked its peers before 2016 and fell behind afterwards, that is evidence consistent with a Brexit cost. If it did not, the simple story needs rethinking."
+  },
+  {
+    "objectID": "blog/posts/post4/index.html#data-and-method",
+    "href": "blog/posts/post4/index.html#data-and-method",
+    "title": "Did Brexit Leave the UK Behind? Output, Investment, and Trade Against the G7",
+    "section": "Data and method",
+    "text": "Data and method\nThe data come from the World Bank’s World Development Indicators, downloaded with the WDI package in R for the seven G7 countries from 2000 to 2025. I use three indicators:\n\nReal GDP per capita (NY.GDP.PCAP.KD, constant 2015 US dollars)\nGross fixed capital formation as a share of GDP (NE.GDI.FTOT.ZS)\nTrade, exports plus imports, as a share of GDP (NE.TRD.GNFS.ZS)\n\nRaw levels are not comparable across these countries, so each series is transformed before plotting.\n\nGDP is measured per capita and in real terms, then indexed to 2016 = 100. Per capita matters because population growth differs across the G7, and indexing puts every country on the same scale in the referendum year.\nInvestment and trade shares are shown as the change in percentage points since 2016. Germany trades a far larger share of its GDP than the United States does, so comparing levels would mostly show country size. Comparing changes shows who moved.\n\nThe comparison group is the unweighted average of Canada, France, Germany, Italy, Japan, and the United States. I keep only years in which all seven countries report data, so the average never changes composition. This is why investment and trade end in 2024.\nThis is a descriptive comparison and not a causal estimate. The G7 average stands in for what might have happened to the UK without Brexit, and the limitations section discusses how well it does that job."
+  },
+  {
+    "objectID": "blog/posts/post4/index.html#output-a-gap-that-opened-after-exit-not-after-the-vote",
+    "href": "blog/posts/post4/index.html#output-a-gap-that-opened-after-exit-not-after-the-vote",
+    "title": "Did Brexit Leave the UK Behind? Output, Investment, and Trade Against the G7",
+    "section": "1. Output: a gap that opened after exit, not after the vote",
+    "text": "1. Output: a gap that opened after exit, not after the vote\n\nThe referendum itself left no visible mark on output. In 2019, three years after the vote, the UK index stood at 104.3 against 104.1 for its peers.\nThe gap appears in 2020. The UK’s pandemic recession was deeper, leaving it 4.8 points behind. It recovered part of that ground by 2022, when the gap narrowed to 1.4 points, and then fell back again. In 2025 real GDP per capita was 5.5% above its 2016 level in the UK and 9.0% above in the peer group, a shortfall of 3.4 points. Among the seven countries, the UK ranks 5 out of 7 for growth since 2016.\nIs a gap of that size unusual? Not by itself. Because every country is set to 100 in 2016, the chart also shows relative growth before the referendum: between 2011 and 2016 the UK outgrew its peers by 3.2 points. Swings of this size have happened before, in the UK’s favour. What stands out now is the direction and the persistence: the shortfall was 3.1 points in 2023, 3.6 in 2024, and 3.4 in 2025, well after pandemic restrictions ended."
+  },
+  {
+    "objectID": "blog/posts/post4/index.html#investment-a-recovery-that-stalled",
+    "href": "blog/posts/post4/index.html#investment-a-recovery-that-stalled",
+    "title": "Did Brexit Leave the UK Behind? Output, Investment, and Trade Against the G7",
+    "section": "2. Investment: a recovery that stalled",
+    "text": "2. Investment: a recovery that stalled\n\nInvestment is where economists expected the referendum to bite first, because firms facing uncertainty about future market access tend to postpone spending. The data fit that story, with a caveat.\nBy 2024 the peer group’s investment share was 1.4 percentage points above its 2016 level. The UK’s was 0.1 points above, essentially unchanged. A gap was already visible in 2019 (0.6 points) and has stayed between 1 and 2 points since 2020.\nThe caveat is that the two lines were far from parallel before 2016. UK investment had been climbing out of a deep post-crisis trough: its share of GDP rose 2.4 points between 2011 and 2016 while the peer average was flat. The honest reading is that UK investment did not fall after the referendum. A recovery stopped, at the moment when investment in comparable economies began to rise. Note also that this indicator covers all fixed investment, including housing and government, and not business investment alone."
+  },
+  {
+    "objectID": "blog/posts/post4/index.html#trade-the-weakest-evidence",
+    "href": "blog/posts/post4/index.html#trade-the-weakest-evidence",
+    "title": "Did Brexit Leave the UK Behind? Output, Investment, and Trade Against the G7",
+    "section": "3. Trade: the weakest evidence",
+    "text": "3. Trade: the weakest evidence\n\nTrade should give the cleanest test, since leaving the single market raised trade barriers on a known date. The timing does line up. Through 2019 the UK’s trade share had risen faster than its peers’, by 2.7 points, plausibly because the fall in sterling after the referendum raised the pound value of both imports and exports. In 2021, the first year outside the single market, the gap flipped to 3.1 points behind, and it was 1.8 points behind in 2024.\nBut the UK series is volatile, and that undermines the result. In 2015, before any of this, the UK was already 4.2 points below the peer average on the same measure. The post-2021 gap sits inside the range of gaps seen before the referendum. The direction is what a Brexit effect would predict, but on annual trade shares I cannot distinguish it from ordinary noise. The spike in 2022 across both lines likely reflects energy prices, which raise the nominal value of imports everywhere."
+  },
+  {
+    "objectID": "blog/posts/post4/index.html#explore-the-data",
+    "href": "blog/posts/post4/index.html#explore-the-data",
+    "title": "Did Brexit Leave the UK Behind? Output, Investment, and Trade Against the G7",
+    "section": "Explore the data",
+    "text": "Explore the data\nThe chart below combines the three measures. Use the buttons to switch between them, hover over any year to see the size of the gap, and drag the slider at the bottom to zoom in on a period.\n\n\nCode\ncol_uk   &lt;- \"#C8102E\"\ncol_peer &lt;- \"#1F3A5F\"\n\nmeasures &lt;- c(\n  gdp_pc_idx = \"Real GDP per capita (2016 = 100)\",\n  invest_chg = \"Investment share of GDP (pp change since 2016)\",\n  trade_chg  = \"Trade share of GDP (pp change since 2016)\"\n)\nbutton_labels &lt;- c(\"GDP per capita\", \"Investment\", \"Trade\")\nevents &lt;- data.frame(year  = c(2016, 2021),\n                     label = c(\"Referendum\", \"Leaves single market\"))\n\np &lt;- plot_ly()\nfor (i in seq_along(measures)) {\n  d &lt;- filter(gap, measure == names(measures)[i])\n  p &lt;- p |&gt;\n    add_trace(\n      x = d$year, y = d$peer, type = \"scatter\", mode = \"lines\",\n      name = \"G7 average (ex-UK)\", visible = (i == 1),\n      line = list(color = col_peer, dash = \"dash\", width = 2),\n      hovertemplate = \"G7 avg: %{y:.1f}&lt;extra&gt;&lt;/extra&gt;\"\n    ) |&gt;\n    add_trace(\n      x = d$year, y = d$uk, type = \"scatter\", mode = \"lines+markers\",\n      name = \"United Kingdom\", visible = (i == 1),\n      line = list(color = col_uk, width = 3),\n      marker = list(color = col_uk, size = 5),\n      fill = \"tonexty\", fillcolor = \"rgba(200,16,46,0.12)\",\n      text = sprintf(\"%+.1f\", d$gap),\n      hovertemplate = \"UK: %{y:.1f}&lt;br&gt;Gap vs peers: %{text}&lt;extra&gt;&lt;/extra&gt;\"\n    )\n}\n\nbuttons &lt;- lapply(seq_along(measures), function(i) {\n  vis &lt;- rep(FALSE, 2 * length(measures))\n  vis[c(2 * i - 1, 2 * i)] &lt;- TRUE\n  list(method = \"update\", label = button_labels[i],\n       args = list(list(visible = vis),\n                   list(\"yaxis.title.text\" = measures[[i]])))\n})\n\nvlines &lt;- lapply(events$year, function(x) {\n  list(type = \"line\", x0 = x, x1 = x, yref = \"paper\", y0 = 0, y1 = 1,\n       line = list(color = \"grey\", dash = \"dot\", width = 1))\n})\n\nannots &lt;- lapply(seq_len(nrow(events)), function(i) {\n  list(x = events$year[i], y = c(1, 0.93)[i], yref = \"paper\",\n       text = events$label[i], showarrow = FALSE,\n       xanchor = \"right\", yanchor = \"top\",\n       font = list(size = 11, color = \"grey\"))\n})\n\np |&gt;\n  layout(\n    hovermode = \"x unified\",\n    margin    = list(t = 60),\n    xaxis     = list(title = \"\", rangeslider = list(visible = TRUE)),\n    yaxis     = list(title = measures[[1]]),\n    shapes    = vlines,\n    annotations = annots,\n    legend    = list(orientation = \"h\", x = 1, xanchor = \"right\",\n                     y = 1.03, yanchor = \"bottom\"),\n    updatemenus = list(list(\n      type = \"buttons\", direction = \"right\",\n      x = 0, y = 1.03, xanchor = \"left\", yanchor = \"bottom\",\n      buttons = buttons\n    ))\n  ) |&gt;\n  config(displayModeBar = FALSE)"
+  },
+  {
+    "objectID": "blog/posts/post4/index.html#limitations",
+    "href": "blog/posts/post4/index.html#limitations",
+    "title": "Did Brexit Leave the UK Behind? Output, Investment, and Trade Against the G7",
+    "section": "Limitations",
+    "text": "Limitations\n\nOther shocks hit at the same time. The UK left the single market in the middle of a pandemic and one year before an energy crisis to which its gas-dependent economy was especially exposed. A comparison with peers cannot separate these from Brexit.\nThe G7 average is an imperfect counterfactual. The investment and trade charts show that the UK did not move in parallel with its peers before 2016, so some of the later divergence may have happened anyway. A synthetic control that weights countries to match the UK’s pre-2016 path would be the natural next step.\nAnnual data hide timing. Events such as the referendum in June and the end of the transition period in December fall inside single observations.\nTrade shares are nominal. They move with exchange rates and commodity prices as well as with trade volumes."
+  },
+  {
+    "objectID": "blog/posts/post4/index.html#takeaway",
+    "href": "blog/posts/post4/index.html#takeaway",
+    "title": "Did Brexit Leave the UK Behind? Output, Investment, and Trade Against the G7",
+    "section": "Takeaway",
+    "text": "Takeaway\nThree charts give three different strengths of answer. Output gives the clearest signal: the UK kept pace with the G7 for three years after the referendum, then fell about 3 points behind after it actually left and has not recovered the ground. A swing of similar size, in the UK’s favour, occurred in the five years before the referendum, so this alone is not proof. Investment points the same way, as a recovery that stalled while peers’ investment rose. Trade does not settle anything at this level of aggregation.\nThe broader lesson is about timing. The damage many expected from the vote itself does not appear in output. What the data show is a slower divergence that began once the new trading arrangements took effect, which is also when it became hardest to tell apart from everything else that went wrong in 2020.\nCode and data: github.com/Peterjianghaowen/blog4-brexit. Data source: World Bank, World Development Indicators."
+  },
+  {
     "objectID": "about.html",
     "href": "about.html",
     "title": "About",
     "section": "",
     "text": "About this site\n\n1 + 1\n\n[1] 2"
-  },
-  {
-    "objectID": "blog/posts/post3/index.html",
-    "href": "blog/posts/post3/index.html",
-    "title": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026",
-    "section": "",
-    "text": "Code\nlibrary(readr)\nlibrary(dplyr)\nlibrary(tidyr)\nlibrary(plotly)\n\n# All data come from the analysis repository\nbase &lt;- \"https://raw.githubusercontent.com/Peterjianghaowen/blog3-cps/main/\"\n\nnational &lt;- read_csv(paste0(base, \"data/processed/national_monthly.csv\"))\nstate    &lt;- read_csv(paste0(base, \"data/processed/state_annual.csv\"))\nlh       &lt;- read_csv(paste0(base, \"data/processed/lh_share_2019.csv\"))\n\npct &lt;- function(x) sprintf(\"%.1f%%\", 100 * x)\npp  &lt;- function(x) sprintf(\"%.1f percentage points\", 100 * x)\n\nfeb20  &lt;- national |&gt; filter(YEAR == 2020, MONTH == 2)\napr20  &lt;- national |&gt; filter(YEAR == 2020, MONTH == 4)\nlatest &lt;- national |&gt; slice_tail(n = 1)\n\nshock &lt;- state |&gt;\n  filter(YEAR %in% c(2019, 2020)) |&gt;\n  select(state, YEAR, ur) |&gt;\n  pivot_wider(names_from = YEAR, values_from = ur, names_prefix = \"ur_\") |&gt;\n  mutate(ur_change = ur_2020 - ur_2019) |&gt;\n  left_join(lh, by = \"state\")\n\ntop3   &lt;- shock |&gt; arrange(desc(ur_change)) |&gt; slice(1:3)\ncor_all &lt;- cor(shock$lh_share, shock$ur_change)\ncor_ex  &lt;- shock |&gt; filter(!state %in% c(\"Nevada\", \"Hawaii\")) |&gt;\n  with(cor(lh_share, ur_change))"
-  },
-  {
-    "objectID": "blog/posts/post3/index.html#the-question",
-    "href": "blog/posts/post3/index.html#the-question",
-    "title": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026",
-    "section": "The question",
-    "text": "The question\nIn the spring of 2020 the U.S. unemployment rate rose more in two months than it did over the entire Great Recession. But a national average hides a lot. A worker in Nebraska and a worker in Nevada lived through very different labor markets. This post asks three questions: how large was the shock nationally, which states were hit hardest and how fast they recovered, and whether a state’s industry mix helps explain the differences."
-  },
-  {
-    "objectID": "blog/posts/post3/index.html#data-and-method",
-    "href": "blog/posts/post3/index.html#data-and-method",
-    "title": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026",
-    "section": "Data and method",
-    "text": "Data and method\nI use IPUMS CPS basic monthly microdata from January 2019 to August 2026, covering about 7.6 million person-month observations of civilians aged 16 and over. Every statistic is weighted with the CPS final person weight (WTFINL), so the numbers describe the U.S. population rather than the raw sample.\n\nUnemployment rate = unemployed / labor force\nLabor force participation rate (LFPR) = labor force / civilian population 16+\n\nThe series are not seasonally adjusted, so they differ slightly from the BLS headline figures. State estimates are annual averages of monthly data, because single-month samples in small states are noisy. October 2025 is missing because the CPS was not collected during the federal government shutdown, and 2026 covers January to August only."
-  },
-  {
-    "objectID": "blog/posts/post3/index.html#the-national-shock",
-    "href": "blog/posts/post3/index.html#the-national-shock",
-    "title": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026",
-    "section": "1. The national shock",
-    "text": "1. The national shock\n\nUnemployment jumped from 3.8% in February 2020 to 14.5% in April. At the same time, labor force participation fell from 63.4% to 60.1%. That second drop matters: many people who lost jobs stopped looking for work and so were not counted as unemployed at all. The headline unemployment rate therefore understates how much the labor market contracted. By August 2026, unemployment stood at 4.3% and participation at 62.1%."
-  },
-  {
-    "objectID": "blog/posts/post3/index.html#which-states-were-hit-hardest",
-    "href": "blog/posts/post3/index.html#which-states-were-hit-hardest",
-    "title": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026",
-    "section": "2. Which states were hit hardest?",
-    "text": "2. Which states were hit hardest?\nThe map below shows each state’s annual unemployment rate. Drag the slider or press Play to move through the years, and hover over a state for its unemployment rate, participation rate, and CPS sample size. The color scale is fixed across years, so darker always means higher unemployment.\n\n\nCode\nstate_abb &lt;- c(setNames(state.abb, state.name), \"District of Columbia\" = \"DC\")\n\nmap_df &lt;- state |&gt;\n  mutate(code = state_abb[state],\n         year_lab = ifelse(YEAR == 2026, \"2026*\", as.character(YEAR)))\n\nplot_geo(map_df, locationmode = \"USA-states\") |&gt;\n  add_trace(\n    type = \"choropleth\",\n    locations = ~code, z = ~ur, frame = ~year_lab,\n    zmin = min(map_df$ur), zmax = max(map_df$ur),\n    colors = viridisLite::magma(100, direction = -1),\n    text = ~sprintf(\"&lt;b&gt;%s, %s&lt;/b&gt;&lt;br&gt;Unemployment rate: %.1f%%&lt;br&gt;LFPR: %.1f%%&lt;br&gt;Sample size: %s\",\n                    state, year_lab, ur * 100, lfpr * 100, format(n, big.mark = \",\")),\n    hoverinfo = \"text\",\n    marker = list(line = list(color = \"white\", width = 0.5)),\n    colorbar = list(title = \"Unemployment&lt;br&gt;rate\", tickformat = \".0%\")\n  ) |&gt;\n  layout(geo = list(scope = \"usa\", projection = list(type = \"albers usa\"))) |&gt;\n  animation_opts(frame = 800, redraw = TRUE) |&gt;\n  animation_slider(currentvalue = list(prefix = \"Year: \")) |&gt;\n  config(displayModeBar = FALSE)\n\n\n\n\n\n\nThe heatmap shows every state and year at once, with states ordered by their 2020 unemployment rate.\n\nTwo patterns stand out. First, the shock was highly uneven. Between 2019 and 2020, unemployment rose by 9.3 percentage points in Nevada, 8.8 percentage points in Hawaii, and 6.5 percentage points in Massachusetts, while states in the Great Plains saw much smaller increases. Second, the recovery was fast: by 2022, most states were back close to their 2019 levels."
-  },
-  {
-    "objectID": "blog/posts/post3/index.html#does-industry-mix-explain-the-differences",
-    "href": "blog/posts/post3/index.html#does-industry-mix-explain-the-differences",
-    "title": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026",
-    "section": "3. Does industry mix explain the differences?",
-    "text": "3. Does industry mix explain the differences?\nA natural hypothesis is that states more dependent on in-person services were hit harder, since restaurants, hotels, and entertainment venues shut down first. To test this, I measure each state’s pre-pandemic exposure as the share of its workers employed in leisure and hospitality in 2019.\n\nThe relationship is strongly positive, with a correlation of 0.68. But much of this comes from two outliers: Nevada and Hawaii, whose economies depend heavily on tourism. Dropping them, the correlation falls to 0.3. Industry mix still matters, but it is only part of the story. States such as Massachusetts, New Jersey, California, and Michigan had average leisure and hospitality shares yet saw large increases in unemployment. Stricter and longer lockdowns in the Northeast and on the West Coast, and Michigan’s exposure to auto manufacturing shutdowns, are plausible explanations that this data cannot separate."
-  },
-  {
-    "objectID": "blog/posts/post3/index.html#takeaway",
-    "href": "blog/posts/post3/index.html#takeaway",
-    "title": "Where Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026",
-    "section": "Takeaway",
-    "text": "Takeaway\nThe COVID-19 labor market shock was national in timing but local in severity. States whose economies relied on tourism and in-person services suffered the largest increases in unemployment, with Nevada and Hawaii as extreme cases. Outside those two states, industry mix explains only a modest part of the variation, which suggests that policy responses and other features of local economies also shaped how hard each state was hit. For policymakers, the lesson is that a single national unemployment rate is a poor guide to where support is most needed during a sector-specific shock.\nCode and data: github.com/Peterjianghaowen/blog3-cps. Data source: IPUMS CPS, University of Minnesota, www.ipums.org."
   }
 ]
