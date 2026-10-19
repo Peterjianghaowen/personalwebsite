@@ -217,88 +217,234 @@ window.Quarto = {
 </header>
 
 
-<p>Intermediate microeconomics hands you a pile of results that look unrelated: Shephard’s Lemma, Hotelling’s Lemma, Roy’s Identity. Each gets its own proof, its own diagram, its own place on the exam.</p>
-<p>They are the same theorem. Once you see the <strong>envelope theorem</strong>, the other three are one-line substitutions.</p>
-<section id="the-unconstrained-case" class="level2">
-<h2 class="anchored" data-anchor-id="the-unconstrained-case">The unconstrained case</h2>
-<p>Let <span class="math inline">\(f(x,\theta)\)</span> be an objective function and <span class="math inline">\(\theta\)</span> a parameter. Define the value function</p>
-<p><span class="math display">\[V(\theta) = \max_{x} f(x,\theta), \qquad x^*(\theta) = \operatorname*{arg\,max}_{x} f(x,\theta).\]</span></p>
-<p>Substitute the maximiser back in and differentiate by the chain rule:</p>
-<p><span class="math display">\[\frac{dV}{d\theta} = \underbrace{\frac{\partial f}{\partial x}\bigg|_{x^*}\frac{dx^*}{d\theta}}_{\text{indirect effect}} \;+\; \underbrace{\frac{\partial f}{\partial \theta}\bigg|_{x^*}}_{\text{direct effect}}.\]</span></p>
-<p>At an interior maximum the first-order condition is <span class="math inline">\(\partial f/\partial x = 0\)</span>. The indirect term is therefore zero — no matter how violently <span class="math inline">\(x^*\)</span> moves. So</p>
-<p><span class="math display">\[\boxed{\;\frac{dV}{d\theta} = \frac{\partial f}{\partial \theta}\bigg|_{x = x^*(\theta)}\;}\]</span></p>
-<p>Note what we never needed: <span class="math inline">\(dx^*/d\theta\)</span> itself. It is annihilated by the FOC, which is exactly why the theorem is useful when the comparative statics of <span class="math inline">\(x^*\)</span> are intractable.</p>
+<section id="the-question" class="level2">
+<h2 class="anchored" data-anchor-id="the-question">The question</h2>
+<p>Suppose the price of gasoline rises from $3.00 to $3.10 a gallon. How much worse off are you?</p>
+<p>The honest answer seems to require a lot of work. You might drive a little less, combine errands, or take the bus once a week. To measure the damage properly you would have to work out how you re-optimise your whole budget at the new price, then compare.</p>
+<p>The envelope theorem says you can skip all of that. For a small price change, the damage is simply</p>
+<p><span class="math display">\[\text{loss} \approx (\text{gallons you currently buy}) \times (\text{price increase}).\]</span></p>
+<p>If you buy 40 gallons a month, a 10-cent rise costs you about $4 a month, whatever you end up doing about it.</p>
+<p>This matters for two reasons. First, it is how economists price small policy changes in practice. Estimating the cost of a new tax, or a firm’s exposure to a wage rise, rarely requires a model of how everyone will substitute; current quantities are enough. Second, intermediate microeconomics teaches four results as if they were separate facts: Shephard’s Lemma, Hotelling’s Lemma, Roy’s Identity and the Le Chatelier principle. Each has its own proof. This post argues that all four are the gasoline calculation above, applied to different problems, and that once you see this you only need to remember one idea.</p>
 </section>
-<section id="the-constrained-case" class="level2">
-<h2 class="anchored" data-anchor-id="the-constrained-case">The constrained case</h2>
-<p>Now impose a constraint:</p>
-<p><span class="math display">\[V(\theta) = \max_x f(x,\theta) \quad \text{s.t.} \quad g(x,\theta) = 0,\]</span></p>
-<p>with Lagrangian <span class="math inline">\(\mathcal{L}(x,\lambda,\theta) = f(x,\theta) - \lambda\, g(x,\theta)\)</span> and first-order conditions</p>
-<p><span class="math display">\[\frac{\partial f}{\partial x} = \lambda \frac{\partial g}{\partial x}, \qquad g\big(x^*(\theta),\theta\big) = 0.\]</span></p>
-<p>Differentiating <span class="math inline">\(V(\theta) = f(x^*(\theta),\theta)\)</span> gives the same decomposition as before — but now the indirect term does <strong>not</strong> vanish, because <span class="math inline">\(\partial f/\partial x \neq 0\)</span> at a constrained optimum.</p>
-<p>The rescue comes from the constraint, which holds <em>identically</em> in <span class="math inline">\(\theta\)</span>. Differentiate it:</p>
-<p><span class="math display">\[\frac{\partial g}{\partial x}\frac{dx^*}{d\theta} + \frac{\partial g}{\partial \theta} = 0 \quad\Longrightarrow\quad \frac{\partial g}{\partial x}\frac{dx^*}{d\theta} = -\frac{\partial g}{\partial \theta}.\]</span></p>
-<p>Substitute the FOC <span class="math inline">\(\partial f/\partial x = \lambda\,\partial g/\partial x\)</span> into the indirect term:</p>
-<p><span class="math display">\[\frac{dV}{d\theta} = \frac{\partial f}{\partial x}\frac{dx^*}{d\theta}+\frac{\partial f}{\partial \theta}=\lambda\frac{\partial g}{\partial x}\frac{dx^*}{d\theta} + \frac{\partial f}{\partial \theta} = \frac{\partial f}{\partial \theta} - \lambda\frac{\partial g}{\partial \theta} = \frac{\partial \mathcal{L}}{\partial \theta}\bigg|_{x^*,\,\lambda^*}.\]</span></p>
-<p>Differentiate the Lagrangian, hold <span class="math inline">\(x\)</span> and <span class="math inline">\(\lambda\)</span> fixed, done. When <span class="math inline">\(g\)</span> does not involve <span class="math inline">\(\theta\)</span>, the second term drops out and this reduces to the unconstrained formula. The multiplier earns its keep here: moving <span class="math inline">\(\theta\)</span> also loosens or tightens the constraint, and that channel is not second-order.</p>
+<section id="the-intuition-the-top-of-a-hill-is-flat" class="level2">
+<h2 class="anchored" data-anchor-id="the-intuition-the-top-of-a-hill-is-flat">The intuition: the top of a hill is flat</h2>
+<p>You have already chosen the best bundle at the current prices. That means you are at the top of a hill: every small change to your choices, such as one gallon more or less, leaves you no better off.</p>
+<p>When the price moves, two things happen:</p>
+<ol type="1">
+<li><strong>Direct effect.</strong> The bundle you already hold becomes more expensive. This is the 40 gallons × 10 cents.</li>
+<li><strong>Indirect effect.</strong> You re-optimise, shifting your choices to the new best bundle.</li>
+</ol>
+<p>The indirect effect is a small movement away from the top of the hill. At the top, the ground is flat, so a small step changes your height by almost nothing. That is why the indirect effect can be ignored for small changes, and why only the direct effect is left. The rest of the post is this sentence written in different notation.</p>
 </section>
-<section id="four-applications" class="level2">
-<h2 class="anchored" data-anchor-id="four-applications">Four applications</h2>
-<p>The theorem holds for minimisation too: apply the result above to <span class="math inline">\(-f\)</span> and negate. Only the second-order conditions differ, and they play no role in the argument.</p>
-<p><strong>Shephard’s Lemma.</strong> Expenditure minimisation: <span class="math inline">\(e(p,\bar u) = \min_x \{p \cdot x : u(x) \ge \bar u\}\)</span>, so <span class="math inline">\(\mathcal{L} = p \cdot x - \lambda(u(x) - \bar u)\)</span>. Consider <span class="math inline">\(\theta = p_i\)</span>. Then <span class="math inline">\(\partial\mathcal{L}/\partial p_i = x_i\)</span>, giving</p>
-<p><span class="math display">\[\frac{\partial e(p,\bar u)}{\partial p_i} = h_i(p,\bar u).\]</span></p>
-<p>Take <span class="math inline">\(\theta = \bar u\)</span> instead and <span class="math inline">\(\partial\mathcal{L}/\partial \bar u = \lambda\)</span>, so <span class="math inline">\(\partial e/\partial \bar u = \lambda^*\)</span> — the multiplier is the shadow price of utility. The identical argument applied to the firm’s cost function <span class="math inline">\(c(y,w) = \min_x \{w \cdot x : F(x) \ge y\}\)</span> gives <span class="math inline">\(\partial c/\partial w_j = x_j(y,w)\)</span>, the conditional factor demand.</p>
-<p><strong>Hotelling’s Lemma.</strong> Profit maximisation over inputs: <span class="math inline">\(\pi(p,w) = \max_x \{p\,F(x) - w \cdot x\}\)</span>, unconstrained. With <span class="math inline">\(f(x,p,w) = p\,F(x) - w\cdot x\)</span>, take <span class="math inline">\(\theta = p\)</span>:</p>
-<p><span class="math display">\[\frac{\partial \pi}{\partial p} = \frac{\partial f}{\partial p}\bigg|_{x^*} = F(x^*) = y^*(p,w),\]</span></p>
-<p>the profit-maximising supply. Take <span class="math inline">\(\theta = w_j\)</span> and <span class="math inline">\(\partial f/\partial w_j = -x_j\)</span>, so <span class="math inline">\(\partial\pi/\partial w_j = -x_j^*(p,w)\)</span> — the unconditional factor demand.</p>
-<p><strong>Roy’s Identity.</strong> Utility maximisation: <span class="math inline">\(v(p,m) = \max_x u(x)\)</span> s.t. <span class="math inline">\(p\cdot x = m\)</span>, so <span class="math inline">\(\mathcal{L} = u(x) - \lambda(p\cdot x - m)\)</span>. Two applications:</p>
-<p><span class="math display">\[\frac{\partial v}{\partial p_i} = -\lambda x_i^*, \qquad \frac{\partial v}{\partial m} = \lambda.\]</span></p>
-<p>Divide one by the other and <span class="math inline">\(\lambda\)</span> cancels:</p>
-<p><span class="math display">\[x_i^*(p,m) = -\frac{\partial v/\partial p_i}{\partial v/\partial m}.\]</span></p>
-<p>Marshallian demand recovered from the indirect utility function without solving the consumer’s problem again.</p>
-<p><strong>The Le Chatelier principle.</strong> Compare a short run with <span class="math inline">\(x_2\)</span> fixed against a long run where it adjusts. The long-run cost function is the lower envelope of the short-run ones: they are tangent at the reference factor price <span class="math inline">\(w_1^0\)</span>, and <span class="math inline">\(c^{\mathrm{LR}}\)</span> lies weakly below everywhere else. So <span class="math inline">\(D(w_1) = c^{\mathrm{SR}} - c^{\mathrm{LR}} \ge 0\)</span> attains its minimum of zero at <span class="math inline">\(w_1^0\)</span>, giving <span class="math inline">\(D''(w_1^0) \ge 0\)</span>. By Shephard, <span class="math inline">\(x_1 = \partial c/\partial w_1\)</span>, so</p>
-<p><span class="math display">\[\frac{\partial x_1^{\mathrm{SR}}}{\partial w_1} \ \ge\ \frac{\partial x_1^{\mathrm{LR}}}{\partial w_1}.\]</span></p>
-<p>Both second derivatives are non-positive because cost functions are concave in factor prices — the same envelope argument that makes <span class="math inline">\(e\)</span> concave in <span class="math inline">\(p\)</span>. Combining this with the inequality above gives, in absolute value,</p>
-<p><span class="math display">\[\left|\frac{\partial x_1^{\mathrm{LR}}}{\partial w_1}\right| \ \ge\ \left|\frac{\partial x_1^{\mathrm{SR}}}{\partial w_1}\right|.\]</span></p>
-<p>Long-run conditional demand responds at least as much as short-run. Samuelson’s 1947 result — a consequence of the geometry of optimisation, not of any additional behavioural assumption.</p>
-</section>
-<section id="why-envelope" class="level2">
-<h2 class="anchored" data-anchor-id="why-envelope">Why “envelope”?</h2>
-<p>The name is literal. Fix a consumption bundle <span class="math inline">\(x^{(k)}\)</span> and ask what it costs as <span class="math inline">\(p_1\)</span> varies: the answer is <span class="math inline">\(p \cdot x^{(k)}\)</span>, a <strong>straight line</strong> in <span class="math inline">\(p_1\)</span> with slope <span class="math inline">\(x_1^{(k)}\)</span>. Every bundle gives one such line.</p>
-<p>The expenditure function is the <em>lower envelope</em> of that family — at each price you take whichever bundle is cheapest. A minimum over straight lines is concave, and at every price it is tangent to whichever line is currently optimal. Tangent means equal slope, and that slope is <span class="math inline">\(x_1^*\)</span>. Shephard’s Lemma, read straight off the picture.</p>
+<section id="checking-it-with-numbers" class="level2">
+<h2 class="anchored" data-anchor-id="checking-it-with-numbers">Checking it with numbers</h2>
+<p>Before the general proof, it is worth confirming that the shortcut actually works. Take a consumer with Cobb-Douglas utility <span class="math inline">\(u(x_1,x_2) = x_1^{0.5}x_2^{0.5}\)</span> who needs to reach utility <span class="math inline">\(\bar u = 1\)</span>, with <span class="math inline">\(p_2 = 1\)</span>. At <span class="math inline">\(p_1 = 1\)</span> she buys one unit of good 1. The code below raises <span class="math inline">\(p_1\)</span> by different amounts and compares two numbers:</p>
+<ul>
+<li><strong>Exact:</strong> the true extra spending needed to stay equally well off, after she fully re-optimises.</li>
+<li><strong>Shortcut:</strong> current quantity × price change, ignoring any re-optimisation.</li>
+</ul>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fl">0.5</span>; u_bar <span class="ot">&lt;-</span> <span class="dv">1</span>; p2 <span class="ot">&lt;-</span> <span class="dv">1</span>; p0 <span class="ot">&lt;-</span> <span class="dv">1</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Cobb-Douglas: u = x1^a * x2^(1-a). All curves below are closed-form</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fl">0.5</span>; u_target <span class="ot">&lt;-</span> <span class="dv">1</span>; p2 <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Expenditure function e(p1,p2,u) = u * (p1/a)^a * (p2/(1-a))^(1-a)</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>e_true <span class="ot">&lt;-</span> <span class="cf">function</span>(p1) u_target <span class="sc">*</span> (p1<span class="sc">/</span>a)<span class="sc">^</span>a <span class="sc">*</span> (p2<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>a))<span class="sc">^</span>(<span class="dv">1</span><span class="sc">-</span>a)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Hicksian demand for good 1, from Shephard: h1 = a*e/p1</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>h1 <span class="ot">&lt;-</span> <span class="cf">function</span>(p1) a <span class="sc">*</span> <span class="fu">e_true</span>(p1) <span class="sc">/</span> p1</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>p_grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.5</span>, <span class="dv">4</span>, <span class="at">length.out =</span> <span class="dv">200</span>)</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Cost of the bundle that was optimal at p0, evaluated at every p1</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>fixed_bundle_line <span class="ot">&lt;-</span> <span class="cf">function</span>(p0) {</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  x1 <span class="ot">&lt;-</span> <span class="fu">h1</span>(p0)</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  x2 <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">-</span> a) <span class="sc">*</span> <span class="fu">e_true</span>(p0) <span class="sc">/</span> p2</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">p1 =</span> p_grid, <span class="at">cost =</span> p_grid <span class="sc">*</span> x1 <span class="sc">+</span> p2 <span class="sc">*</span> x2, <span class="at">anchor =</span> p0)</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>lines_df <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">c</span>(<span class="fl">0.75</span>, <span class="fl">1.25</span>, <span class="dv">2</span>, <span class="dv">3</span>), fixed_bundle_line))</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>env_df   <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">p1 =</span> p_grid, <span class="at">cost =</span> <span class="fu">e_true</span>(p_grid))</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> lines_df, <span class="fu">aes</span>(p1, cost, <span class="at">group =</span> anchor),</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>            <span class="at">colour =</span> <span class="st">"grey65"</span>, <span class="at">linewidth =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> env_df, <span class="fu">aes</span>(p1, cost), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">6</span>)) <span class="sc">+</span></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(p[<span class="dv">1</span>]), <span class="at">y =</span> <span class="st">"Expenditure"</span>) <span class="sc">+</span></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Expenditure function for Cobb-Douglas (closed form)</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>e <span class="ot">&lt;-</span> <span class="cf">function</span>(p1) u_bar <span class="sc">*</span> (p1 <span class="sc">/</span> a)<span class="sc">^</span>a <span class="sc">*</span> (p2 <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> a))<span class="sc">^</span>(<span class="dv">1</span> <span class="sc">-</span> a)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>x1_now <span class="ot">&lt;-</span> a <span class="sc">*</span> <span class="fu">e</span>(p0) <span class="sc">/</span> p0          <span class="co"># quantity of good 1 bought at p0</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>dp <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">0.10</span>, <span class="fl">0.25</span>, <span class="fl">0.50</span>, <span class="fl">1.00</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>check <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">rise     =</span> dp,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">exact    =</span> <span class="fu">e</span>(p0 <span class="sc">+</span> dp) <span class="sc">-</span> <span class="fu">e</span>(p0),</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">shortcut =</span> x1_now <span class="sc">*</span> dp</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>check<span class="sc">$</span>error_pct <span class="ot">&lt;-</span> <span class="dv">100</span> <span class="sc">*</span> (check<span class="sc">$</span>shortcut <span class="sc">-</span> check<span class="sc">$</span>exact) <span class="sc">/</span> check<span class="sc">$</span>exact</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(check, <span class="at">digits =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">1</span>),</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>             <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Price rise"</span>, <span class="st">"Exact cost increase"</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>                           <span class="st">"Shortcut (x1 × rise)"</span>, <span class="st">"Shortcut error (%)"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div id="tbl-check" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-check-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Envelope shortcut versus the exact change in the cost of reaching the same utility.
+</figcaption>
+<div aria-describedby="tbl-check-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="cell caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 28%">
+<col style="width: 29%">
+<col style="width: 26%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Price rise</th>
+<th style="text-align: right;">Exact cost increase</th>
+<th style="text-align: right;">Shortcut (x1 × rise)</th>
+<th style="text-align: right;">Shortcut error (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.0100</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.2</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">0.0494</td>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">1.2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">0.0976</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">2.4</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">0.2361</td>
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">5.9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">0.4495</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">11.2</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.8284</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">20.7</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>For a 1% price rise the shortcut is off by about a quarter of a percent. For a 10% rise it is off by about 2%. Only when the price doubles does the error become large, about 20%. Two things stand out:</p>
+<ul>
+<li>The shortcut always <strong>overstates</strong> the cost. It assumes she keeps buying the old bundle, when in fact she can substitute toward the cheaper good and soften the blow.</li>
+<li>The dollar gap between the two grows with the <strong>square</strong> of the price change. Doubling the price rise roughly quadruples the gap (and doubles the percentage error). That is the “flat top of the hill” in numbers: the benefit of re-optimising is a second-order effect.</li>
+</ul>
+<p>The same logic explains a well-known problem with official inflation measures. A fixed-basket price index like the CPI uses the shortcut: it prices last period’s basket at this period’s prices. As the table shows, that overstates how much more it costs to stay equally well off, and the bias is larger when prices move a lot. This is the “substitution bias” in the CPI.</p>
+</section>
+<section id="the-general-result" class="level2">
+<h2 class="anchored" data-anchor-id="the-general-result">The general result</h2>
+<p>Now the same argument in symbols. Let <span class="math inline">\(f(x,\theta)\)</span> be what we are maximising (utility, profit), <span class="math inline">\(x\)</span> the choice, and <span class="math inline">\(\theta\)</span> a parameter we do not control (a price). Write <span class="math inline">\(x^*(\theta)\)</span> for the best choice and <span class="math inline">\(V(\theta) = f(x^*(\theta),\theta)\)</span> for the best achievable value. By the chain rule,</p>
+<p><span class="math display">\[\frac{dV}{d\theta} = \underbrace{\frac{\partial f}{\partial x}\bigg|_{x^*}\frac{dx^*}{d\theta}}_{\text{indirect: re-optimising}} \;+\; \underbrace{\frac{\partial f}{\partial \theta}\bigg|_{x^*}}_{\text{direct}}.\]</span></p>
+<p>At the optimum the first-order condition says <span class="math inline">\(\partial f/\partial x = 0\)</span>, which is the flat hilltop. So the indirect term vanishes and</p>
+<p><span class="math display">\[\boxed{\;\frac{dV}{d\theta} = \frac{\partial f}{\partial \theta}\bigg|_{x = x^*(\theta)}\;}\]</span></p>
+<p>Notice what we never had to compute: <span class="math inline">\(dx^*/d\theta\)</span>, how the choice responds. That is often the hardest part of a problem, and the theorem lets us avoid it.</p>
+<p><strong>With a budget or other constraint.</strong> Most economic problems have a constraint, <span class="math inline">\(g(x,\theta) = 0\)</span>, and then <span class="math inline">\(\partial f/\partial x\)</span> is not zero at the optimum, because you are pushed against the constraint rather than sitting on a free hilltop. The fix is to include the constraint in the objective with a Lagrange multiplier <span class="math inline">\(\lambda\)</span>, <span class="math inline">\(\mathcal{L} = f - \lambda g\)</span>. The Lagrangian is flat at the optimum in exactly the way <span class="math inline">\(f\)</span> was before, so the same argument goes through:</p>
+<p><span class="math display">\[\frac{dV}{d\theta} = \frac{\partial \mathcal{L}}{\partial \theta}\bigg|_{x^*,\,\lambda^*} = \frac{\partial f}{\partial \theta} - \lambda^* \frac{\partial g}{\partial \theta}.\]</span></p>
+<p>In words: differentiate the Lagrangian with respect to the parameter and hold everything else fixed. The second term has a clean meaning. <span class="math inline">\(\lambda^*\)</span> is the value of relaxing the constraint by one unit, so if the parameter also tightens the constraint, that cost is priced at <span class="math inline">\(\lambda^*\)</span>. The same result holds for minimisation problems, since minimising <span class="math inline">\(f\)</span> is the same as maximising <span class="math inline">\(-f\)</span>.</p>
+</section>
+<section id="four-lemmas-one-idea" class="level2">
+<h2 class="anchored" data-anchor-id="four-lemmas-one-idea">Four lemmas, one idea</h2>
+<p>Each famous result below is one application of the boxed formula. In every case the recipe is the same: write down the problem, pick the price that changes, and ask, “If I hold my current choices fixed, how much does this price change cost or earn me?” The table summarises; the paragraphs explain what each result means.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Result</th>
+<th>Problem</th>
+<th>Price that changes</th>
+<th>Direct effect, holding choices fixed</th>
+<th>Conclusion</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Shephard’s Lemma</td>
+<td>Minimise spending to reach utility <span class="math inline">\(\bar u\)</span></td>
+<td>Price of good <span class="math inline">\(i\)</span></td>
+<td>You pay extra on each unit you buy</td>
+<td><span class="math inline">\(\partial e/\partial p_i = h_i\)</span></td>
+</tr>
+<tr class="even">
+<td>Hotelling’s Lemma</td>
+<td>Maximise profit</td>
+<td>Output price <span class="math inline">\(p\)</span></td>
+<td>You earn extra on each unit you sell</td>
+<td><span class="math inline">\(\partial \pi/\partial p = y^*\)</span></td>
+</tr>
+<tr class="odd">
+<td>Roy’s Identity</td>
+<td>Maximise utility with income <span class="math inline">\(m\)</span></td>
+<td>Price of good <span class="math inline">\(i\)</span></td>
+<td>Like losing income equal to <span class="math inline">\(x_i\)</span></td>
+<td><span class="math inline">\(x_i^* = -\dfrac{\partial v/\partial p_i}{\partial v/\partial m}\)</span></td>
+</tr>
+<tr class="even">
+<td>Le Chatelier</td>
+<td>Minimise cost, short run vs long run</td>
+<td>Input price <span class="math inline">\(w_1\)</span></td>
+<td>Same, but one problem has fewer choices</td>
+<td>Long-run demand responds more</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Shephard’s Lemma</strong> is the gasoline example. The expenditure function <span class="math inline">\(e(p,\bar u)\)</span> is the least you can spend to reach utility <span class="math inline">\(\bar u\)</span>. Raise <span class="math inline">\(p_i\)</span> by a dollar while keeping your bundle fixed and your bill rises by <span class="math inline">\(h_i\)</span>, the number of units you buy. So</p>
+<p><span class="math display">\[\frac{\partial e}{\partial p_i} = h_i(p,\bar u).\]</span></p>
+<p>The practical reading: the slope of the cost-of-living function with respect to a price is your consumption of that good. Applied to a firm’s cost function it gives <span class="math inline">\(\partial c/\partial w_j = x_j\)</span>: a $1 wage rise increases costs by the number of hours currently employed.</p>
+<p><strong>Hotelling’s Lemma</strong> is the same calculation for a firm maximising profit <span class="math inline">\(\pi(p,w) = \max_x \{p\,F(x) - w\cdot x\}\)</span>. If the output price rises by a dollar and the firm changes nothing, profit rises by one dollar per unit produced:</p>
+<p><span class="math display">\[\frac{\partial \pi}{\partial p} = y^*(p,w), \qquad \frac{\partial \pi}{\partial w_j} = -x_j^*(p,w).\]</span></p>
+<p>The firm will also expand output in response, but by the flat-hilltop argument that adjustment adds nothing at the margin.</p>
+<p><strong>Roy’s Identity</strong> looks the most mysterious, but it is the same idea plus a conversion of units. The indirect utility function <span class="math inline">\(v(p,m)\)</span> gives the best utility reachable with prices <span class="math inline">\(p\)</span> and income <span class="math inline">\(m\)</span>. A rise in <span class="math inline">\(p_i\)</span>, holding the bundle fixed, takes away <span class="math inline">\(x_i\)</span> dollars of purchasing power, exactly like an income loss of <span class="math inline">\(x_i\)</span>. So</p>
+<p><span class="math display">\[\frac{\partial v}{\partial p_i} = -\lambda\, x_i^*, \qquad \frac{\partial v}{\partial m} = \lambda,\]</span></p>
+<p>where <span class="math inline">\(\lambda\)</span> is the utility value of one extra dollar. Dividing the two converts utility back into dollars, and <span class="math inline">\(\lambda\)</span> cancels:</p>
+<p><span class="math display">\[x_i^*(p,m) = -\frac{\partial v/\partial p_i}{\partial v/\partial m}.\]</span></p>
+<p>The useful part: if you know how well-being depends on prices and income, you can read off demand without solving the consumer’s problem again.</p>
+<p><strong>The Le Chatelier principle</strong> asks how a firm’s demand for an input responds to its price in the short run, when another input <span class="math inline">\(x_2\)</span> is fixed, compared with the long run, when it can adjust. Both cost functions satisfy Shephard’s Lemma, so both slopes equal the quantity demanded at the reference price, and the two cost curves touch there. Away from that point, the long-run firm can do everything the short-run firm can and more, so its costs are weakly lower: the long-run cost curve is the envelope of the short-run ones. Two curves that touch, with one always below the other, must have the lower one bending more sharply. Translating curvature into demand slopes gives</p>
+<p><span class="math display">\[\left|\frac{\partial x_1^{\mathrm{LR}}}{\partial w_1}\right| \ \ge\ \left|\frac{\partial x_1^{\mathrm{SR}}}{\partial w_1}\right|.\]</span></p>
+<p>In plain terms: more flexibility means a bigger response to prices. This is why demand for energy, or for labour, is usually estimated to be more elastic over several years than over a few months.</p>
+<p><strong>Why they are the same.</strong> In all four cases the answer comes from the direct effect alone, because the agent is already at an optimum and small re-adjustments are worth nothing to first order. The lemmas differ only in which problem they apply to and which price is changing.</p>
+</section>
+<section id="why-envelope" class="level2">
+<h2 class="anchored" data-anchor-id="why-envelope">Why “envelope”?</h2>
+<p>The name comes from a picture. Fix any bundle and ask how much it costs as <span class="math inline">\(p_1\)</span> changes. The answer is a straight line, because you are buying fixed quantities. Every bundle gives a different line. Someone who re-optimises at every price always picks the cheapest of these lines, so their spending traces out the lower <strong>envelope</strong> of the whole family.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>h1 <span class="ot">&lt;-</span> <span class="cf">function</span>(p1) a <span class="sc">*</span> <span class="fu">e</span>(p1) <span class="sc">/</span> p1</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>p_grid <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.5</span>, <span class="dv">4</span>, <span class="at">length.out =</span> <span class="dv">200</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>fixed_bundle_line <span class="ot">&lt;-</span> <span class="cf">function</span>(p_anchor) {</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  x1 <span class="ot">&lt;-</span> <span class="fu">h1</span>(p_anchor)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  x2 <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">-</span> a) <span class="sc">*</span> <span class="fu">e</span>(p_anchor) <span class="sc">/</span> p2</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>(<span class="at">p1 =</span> p_grid, <span class="at">cost =</span> p_grid <span class="sc">*</span> x1 <span class="sc">+</span> p2 <span class="sc">*</span> x2, <span class="at">anchor =</span> p_anchor)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>lines_df <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(<span class="fu">c</span>(<span class="fl">0.75</span>, <span class="fl">1.25</span>, <span class="dv">2</span>, <span class="dv">3</span>), fixed_bundle_line))</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>env_df   <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">p1 =</span> p_grid, <span class="at">cost =</span> <span class="fu">e</span>(p_grid))</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>touch_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">p1 =</span> <span class="fu">c</span>(<span class="fl">0.75</span>, <span class="fl">1.25</span>, <span class="dv">2</span>, <span class="dv">3</span>), <span class="at">cost =</span> <span class="fu">e</span>(<span class="fu">c</span>(<span class="fl">0.75</span>, <span class="fl">1.25</span>, <span class="dv">2</span>, <span class="dv">3</span>)))</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> lines_df, <span class="fu">aes</span>(p1, cost, <span class="at">group =</span> anchor),</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>            <span class="at">colour =</span> <span class="st">"grey65"</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> env_df, <span class="fu">aes</span>(p1, cost), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> touch_df, <span class="fu">aes</span>(p1, cost), <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">6</span>)) <span class="sc">+</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="fu">expression</span>(<span class="st">"Price of good 1, "</span> <span class="sc">*</span> p[<span class="dv">1</span>]),</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Spending needed to reach utility 1"</span>) <span class="sc">+</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div id="fig-envelope" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -307,18 +453,24 @@ window.Quarto = {
 <img src="index_files/figure-html/fig-envelope-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-envelope-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Grey lines: the cost of holding one fixed bundle as <span class="math inline">\(p_1\)</span> varies. Black curve: the cost of re-optimising at every price. The black curve is their lower envelope, and grazes each line tangentially.
+Figure&nbsp;1: Grey lines: the cost of keeping one fixed bundle as the price of good 1 changes. Black curve: the cost when the consumer re-optimises at every price. The black curve is the lower envelope of the grey lines and touches each one at the price where that bundle is optimal.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Each grey line is a consumer who never adjusts. The black curve is one who re-optimises constantly. Where they touch, they <em>graze</em> — the gap opens quadratically, not linearly. That is the envelope theorem as a picture: at the optimum, small adjustments are free to first order.</p>
-<p><strong>Data.</strong> No external data. Every curve is generated from the closed-form Cobb-Douglas expenditure function in the code above; the only inputs are <span class="math inline">\(a = 0.5\)</span>, <span class="math inline">\(\bar u = 1\)</span>, <span class="math inline">\(p_2 = 1\)</span>.</p>
+<p>Three features of the chart are the theory in visual form:</p>
+<ul>
+<li><strong>The lines touch the curve rather than cross it.</strong> At each dot the fixed bundle is the optimal one, so the line and the curve have the same slope. The slope of a grey line is the quantity of good 1 in that bundle, so the slope of the expenditure function equals current consumption. That is Shephard’s Lemma.</li>
+<li><strong>The grey lines lie above the curve everywhere else.</strong> Keeping a fixed bundle can never be cheaper than re-optimising. This is why the shortcut in the table always overstated the cost, and why the CPI’s fixed basket overstates inflation.</li>
+<li><strong>The gap opens slowly near each dot.</strong> Close to the touching point, the line and the curve are almost indistinguishable, and the gap widens with the square of the distance. That is the “error grows with the square” pattern in the table.</li>
+</ul>
+<p><strong>Data.</strong> No external data. All numbers and curves are generated from the closed-form Cobb-Douglas expenditure function in the code above, with <span class="math inline">\(a = 0.5\)</span>, <span class="math inline">\(\bar u = 1\)</span> and <span class="math inline">\(p_2 = 1\)</span>.</p>
 </section>
 <section id="takeaway" class="level2">
 <h2 class="anchored" data-anchor-id="takeaway">Takeaway</h2>
-<p>When you differentiate a value function, ignore how the optimal choice moves and differentiate the Lagrangian directly. That single fact gives you Shephard, Hotelling, Roy and Le Chatelier — plus the reason a small tax has deadweight loss proportional to the <em>square</em> of the tax. Four lemmas, one theorem, and the FOC doing all the work.</p>
+<p>When a price or other parameter changes by a small amount, the effect on an optimised outcome is just the direct effect on what you are currently doing: current quantity times the price change. You do not need to know how people or firms will adjust, because at an optimum small adjustments are worth nothing to first order. That one idea is Shephard’s Lemma, Hotelling’s Lemma, Roy’s Identity and the Le Chatelier principle.</p>
+<p>The practical rule and its limit go together. For small changes, such as a modest tax or a 5% price rise, current quantities give a reliable estimate. For large changes the shortcut overstates the cost, because people do substitute, and the error grows quickly. In those cases you need to model behaviour, and the difference between the two answers is a measure of how much substitution is worth.</p>
 
 
 </section>
