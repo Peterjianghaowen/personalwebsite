@@ -1,0 +1,186 @@
+---
+title: "How Far Does Center City's Prosperity Reach? Mapping Income Across Philadelphia's Neighborhoods"
+date: 2026-10-19
+categories:
+  - urban economics
+  - GIS
+  - R
+format:
+  html:
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+library(readr)
+library(dplyr)
+library(sf)
+library(leaflet)
+library(scales)
+
+# All data come from the analysis repository
+base <- "https://raw.githubusercontent.com/Peterjianghaowen/blog5-philly-income/main/"
+
+stats    <- read_csv(paste0(base, "results/key_stats.csv"))
+clusters <- read_csv(paste0(base, "results/cluster_summary.csv"))
+rings    <- read_csv(paste0(base, "results/income_by_distance_ring.csv"))
+
+geo_file <- tempfile(fileext = ".geojson")
+download.file(paste0(base, "data/processed/philly_analysis.geojson"),
+              geo_file, quiet = TRUE)
+tracts <- st_read(geo_file, quiet = TRUE)
+
+# Helpers for inline numbers
+s   <- function(x) stats$value[stats$stat == x]
+cl  <- function(name, col) clusters[[col]][clusters$cluster == name]
+rg  <- function(ring, col) rings[[col]][rings$ring == ring]
+usd <- function(x) dollar(x, accuracy = 1000, scale = 1)
+pct <- function(x) sprintf("%.0f%%", x)
+
+hi <- "High-income cluster"
+lo <- "Low-income cluster"
+```
+
+## The question
+
+Center City Philadelphia has changed enormously in the past twenty years. Downtown population has grown, new apartment towers have gone up, and the neighborhoods next to it, from Fishtown to Graduate Hospital, have become some of the most expensive in the city. A common hope is that this kind of downtown revival spreads outward: as the core fills up, demand and investment move into the next ring of neighborhoods, and then the next.
+
+This post asks whether that has happened. Using census data for every neighborhood in the city, I map where Philadelphia's high and low incomes are, test whether they cluster together more than chance would produce, and look at how income changes as you move away from City Hall. The question matters for policy. If poverty is spread thinly across the city, citywide programs are the natural response. If it is concentrated in a few contiguous areas, policy can and arguably should be targeted by place.
+
+## Data and method
+
+The data are the U.S. Census Bureau's American Community Survey 5-year estimates for `r as.integer(s("acs_year")) - 4`–`r as.integer(s("acs_year"))`, at the census-tract level. A tract is a small statistical area of roughly 4,000 people, which is the closest the Census gets to a "neighborhood." Philadelphia has `r as.integer(s("tracts_total"))` of them. I downloaded the estimates through the Census Data API and the 2020 tract boundaries from the Census Bureau's TIGERweb service, then joined them in R with the `sf` package.
+
+The main variable is **median household income**. I also use the poverty rate, the share of adults with a bachelor's degree or higher, and the share of renter households who are rent-burdened, meaning they spend at least 30% of their income on rent. I drop tracts with no income estimate or fewer than 200 residents, which are mostly parks, the airport, and industrial land, leaving `r as.integer(s("tracts_analysed"))` tracts.
+
+Two spatial tools do most of the work:
+
+- **Moran's I** measures whether neighboring tracts have similar incomes. It runs from about −1 (neighbors are systematically different, like a checkerboard) to +1 (neighbors are nearly identical), with 0 meaning no spatial pattern. Two tracts count as neighbors if they share any part of their boundary.
+- **Local Moran's I** (often called LISA) applies the same idea to each tract individually. It flags tracts that sit inside a statistically significant cluster of high incomes or of low incomes, as well as outliers that differ sharply from their surroundings.
+
+Income is analysed in logs, so a gap between \$30,000 and \$60,000 counts the same as one between \$60,000 and \$120,000. Distances are measured from each tract to City Hall, the traditional center of the city.
+
+## 1. The map: a city of very different neighborhoods
+
+![](https://raw.githubusercontent.com/Peterjianghaowen/blog5-philly-income/main/results/fig1_income_map.png)
+
+Median household income in a typical Philadelphia tract is `r usd(s("city_median_tract_income"))`, but the spread is wide. A tract at the 90th percentile has a median income of `r usd(s("income_p90"))`, about `r sprintf("%.1f", s("p90_p10_ratio"))` times the `r usd(s("income_p10"))` of a tract at the 10th percentile.
+
+The dark areas are where you might expect: Center City, the riverfront neighborhoods north of it, and Chestnut Hill and Mount Airy in the far northwest. The lightest band runs across North Philadelphia, from Strawberry Mansion east through Fairhill to Kensington, with a second light area in West and Southwest Philadelphia. The Northeast, much of which was built as postwar suburban housing inside the city limits, sits in the middle of the range.
+
+## 2. High and low incomes cluster together
+
+![](https://raw.githubusercontent.com/Peterjianghaowen/blog5-philly-income/main/results/fig2_lisa_clusters.png)
+
+The map suggests that neighborhoods look like their neighbors, and the statistics confirm it strongly. Moran's I for log income is `r sprintf("%.2f", s("moran_i"))`. For comparison, a value of 0 would mean a tract's income tells you nothing about the incomes next door. The probability of a pattern this strong arising from a random arrangement of the same tracts is effectively zero (p < 0.001).
+
+The local version shows where the clustering comes from. `r cl(hi, "tracts")` tracts form significant high-income clusters, in Center City, the river wards, and the northwest. `r cl(lo, "tracts")` tracts form low-income clusters, almost all in North Philadelphia and West and Southwest Philadelphia. Very few tracts are outliers: only `r cl("High tract, low neighbours", "tracts") + cl("Low tract, high neighbours", "tracts")` are significantly richer or poorer than the tracts around them.
+
+The two kinds of cluster are different worlds:
+
+```{r}
+#| label: cluster-table
+clusters |>
+  filter(cluster %in% c(hi, lo, "Not significant")) |>
+  transmute(
+    Cluster = cluster,
+    Tracts = tracts,
+    `Share of residents` = pct(pop_share),
+    `Median household income` = dollar(median_income, accuracy = 1),
+    `Poverty rate` = pct(poverty_rate),
+    `Bachelor's degree or higher` = pct(ba_share),
+    `Rent-burdened renters` = pct(rent_burden)
+  ) |>
+  knitr::kable(align = "lrrrrrr")
+```
+
+Low-income clusters are home to `r comma(cl(lo, "population"))` people, `r pct(cl(lo, "pop_share"))` of the residents in the sample. Their typical tract has a median household income of `r usd(cl(lo, "median_income"))`, about a third of the `r usd(cl(hi, "median_income"))` in high-income clusters. More than a third of residents in the low-income clusters live below the poverty line (`r pct(cl(lo, "poverty_rate"))`), against `r pct(cl(hi, "poverty_rate"))` in the high-income clusters. The education gap is even larger: `r pct(cl(lo, "ba_share"))` of adults hold a bachelor's degree, compared with `r pct(cl(hi, "ba_share"))`.
+
+One concern with tract incomes near universities is that students report low household incomes while living comfortably. That does not drive the result. College and graduate students make up `r pct(cl(lo, "student_share"))` of residents in the low-income clusters and `r pct(cl(hi, "student_share"))` in the high-income clusters, so the low-income clusters are not student neighborhoods.
+
+## 3. Prosperity reaches about three miles, then stops
+
+![](https://raw.githubusercontent.com/Peterjianghaowen/blog5-philly-income/main/results/fig3_distance_gradient.png)
+
+If downtown prosperity spread smoothly outward, income would fall steadily with distance from City Hall. A simple correlation suggests distance does not matter at all: the correlation between log income and distance is `r sprintf("%.2f", s("cor_income_distance"))`. The chart shows why that number is misleading. The relationship is real but not a straight line. It is a U.
+
+```{r}
+#| label: ring-table
+rings |>
+  transmute(
+    `Miles from City Hall` = ring,
+    Tracts = tracts,
+    `Median tract income` = dollar(median_income, accuracy = 1),
+    `In a low-income cluster` = pct(share_low_cluster),
+    `In a high-income cluster` = pct(share_high_cluster)
+  ) |>
+  knitr::kable(align = "lrrrr")
+```
+
+Within 1.5 miles of City Hall the median tract income is `r usd(rg("0-1.5", "median_income"))`, and `r pct(rg("0-1.5", "share_high_cluster"))` of tracts belong to a high-income cluster. Income then falls fast. Between 3 and 4.5 miles out it reaches its low point of `r usd(rg("3-4.5", "median_income"))`, and `r pct(rg("3-4.5", "share_low_cluster"))` of tracts in that ring are part of a low-income cluster. Beyond about 5 miles income recovers to the citywide middle, `r usd(rg("8+", "median_income"))` in the outermost ring.
+
+The inner ring is where the downtown boom has visibly spread, into neighborhoods such as Fishtown and Northern Liberties. Much of the trough, especially in North Philadelphia, is the band of neighborhoods that grew up around the city's factories and lost its economic base as manufacturing declined. The outer neighborhoods developed differently: Chestnut Hill as a railroad suburb for wealthy commuters, and much of the Northeast as postwar single-family housing. Both have kept a more middle-class or affluent profile. So the map is less a single downtown gradient than three distinct zones, and the middle zone has so far been bypassed.
+
+## 4. Who carries the housing cost burden
+
+![](https://raw.githubusercontent.com/Peterjianghaowen/blog5-philly-income/main/results/fig4_rent_burden_map.png)
+
+Rent burden is high almost everywhere in Philadelphia. Even in the high-income clusters, `r pct(cl(hi, "rent_burden"))` of renters spend at least 30% of their income on rent. But it is highest in exactly the places where incomes are lowest: `r pct(cl(lo, "rent_burden"))` of renter households in the low-income clusters are rent-burdened. Because the burden peaks where incomes are lowest, rather than where housing is most expensive, affordability in these neighborhoods looks mainly like an income problem. That matters for the choice between policies that lower rents and policies that raise the incomes of the people paying them.
+
+## Explore the map
+
+The interactive map below lets you switch between median income, the poverty rate, and the local clusters. Click any tract to see its figures.
+
+```{r}
+#| label: interactive
+cl_cols <- c("High-income cluster"        = "#B2182B",
+             "Low-income cluster"         = "#2166AC",
+             "High tract, low neighbours" = "#F4A582",
+             "Low tract, high neighbours" = "#92C5DE",
+             "Not significant"            = "#E0E0E0")
+
+pal_inc <- colorNumeric("viridis", log10(tracts$med_inc))
+pal_pov <- colorNumeric("OrRd", tracts$pov_rate, na.color = "#dddddd")
+pal_cl  <- colorFactor(unname(cl_cols), levels = names(cl_cols))
+
+popup <- sprintf(
+  "<b>%s</b><br>Median household income: %s<br>Poverty rate: %.1f%%<br>
+   Bachelor's or higher: %.1f%%<br>Rent-burdened renters: %.1f%%<br>
+   Distance to City Hall: %.1f mi<br>Cluster: %s",
+  sub(";.*", "", tracts$NAME), dollar(tracts$med_inc), tracts$pov_rate,
+  tracts$ba_share, tracts$rent_burden, tracts$dist_mi, tracts$cluster)
+
+add_layer <- function(map, group, fill) {
+  addPolygons(map, group = group, fillColor = fill, fillOpacity = 0.75,
+              weight = 0.4, color = "white", popup = popup,
+              highlightOptions = highlightOptions(weight = 2, color = "black",
+                                                  bringToFront = TRUE))
+}
+
+leaflet(tracts, height = 600) |>
+  addProviderTiles(providers$CartoDB.Positron) |>
+  add_layer("Median income", ~pal_inc(log10(med_inc))) |>
+  add_layer("Poverty rate", ~pal_pov(pov_rate)) |>
+  add_layer("Income clusters", ~pal_cl(cluster)) |>
+  addMarkers(lng = -75.1636, lat = 39.9524, label = "City Hall") |>
+  addLayersControl(baseGroups = c("Median income", "Poverty rate", "Income clusters"),
+                   options = layersControlOptions(collapsed = FALSE))
+```
+
+## Limitations
+
+- **Tract estimates are noisy.** The ACS is a sample survey, and tract-level medians often have wide margins of error. The broad clusters are robust to this, but individual tracts should not be over-read. Some extreme values on the rent-burden map come from tracts with few renters.
+- **Five-year estimates blur timing.** The data pool 2020–2024, so they describe the past several years on average and include the pandemic period.
+- **Boundaries shape results.** Tracts are administrative units, and a different set of boundaries could shift individual clusters. Significance is tested tract by tract without correcting for multiple comparisons, so a few flagged tracts may be false positives.
+- **This is a snapshot, not a trend.** The map shows where prosperity is today, not how fast it is moving. Tract boundaries changed in 2020, so comparing with earlier decades needs a crosswalk, which is a natural extension.
+
+## Takeaway
+
+Philadelphia's incomes are strongly sorted in space. Rich neighborhoods sit next to rich neighborhoods and poor next to poor, with a Moran's I of `r sprintf("%.2f", s("moran_i"))`. Downtown's prosperity extends roughly three miles from City Hall and then stops. The next ring, across North Philadelphia and West and Southwest Philadelphia, forms a contiguous low-income belt that is home to about `r comma(round(cl(lo, "population"), -4))` people, nearly a fifth of the city, with a poverty rate above 35% and most renters stretched by housing costs.
+
+The practical implication is that place-based policy has an unusually clear target in Philadelphia. Because low incomes are concentrated rather than scattered, programs aimed at specific neighborhoods, such as job access, transit links to downtown employment, or income support delivered locally, can reach a large share of the city's poorest households without spreading resources across the whole city. Waiting for downtown growth to spill over has not, so far, reached these neighborhoods.
+
+*Code and data: [github.com/Peterjianghaowen/blog5-philly-income](https://github.com/Peterjianghaowen/blog5-philly-income). Data source: U.S. Census Bureau, American Community Survey 5-year estimates and TIGERweb tract boundaries.*
