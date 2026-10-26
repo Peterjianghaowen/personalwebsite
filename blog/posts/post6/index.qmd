@@ -241,10 +241,20 @@ The middle of the range is where the measurement works best. Earnings in the
 mid-thirties to mid-forties are close to their peak, so current income is a
 fair proxy for long-run economic status and the attenuation is smallest. At
 both ends of the range, measured income is a worse proxy for status, and the
-estimate falls with it. This is the attenuation bias that the lifecycle
-literature warns about, and it has a direct practical consequence: an IGE
-measured on young adults will understate the true intergenerational persistence
-of income, potentially by a large margin.
+estimate falls with it. This is the shape that the lifecycle literature warns
+about, and if it holds it has a direct practical consequence: an IGE measured
+on young adults will understate the true intergenerational persistence of
+income.
+
+It is important not to read more into the numbers than they support. The
+confidence intervals overlap substantially. The 95% interval for the oldest
+group, `r paste0("[", num(age_est("45-55", "Two-year average", "ci_low")), ", ", num(age_est("45-55", "Two-year average", "ci_high")), "]")`,
+contains the point estimates of both younger groups, and the same is true
+between the two younger groups. The differences across age groups are
+therefore suggestive rather than conclusive: the pattern is what the lifecycle
+story predicts, but this cross-section does not establish it on its own. A
+larger sample, or the same people followed over their working lives, would be
+needed to separate the age effect from sampling noise.
 
 One caveat belongs with this result. These are age groups in a single
 cross-section, not the same people followed over time, so the pattern mixes an
@@ -276,7 +286,9 @@ purely mechanical consequence of measuring income too late in life.
   from a measure of rank persistence into a structural parameter, which is a
   different and more ambitious object.
 - **Cross-sectional age profiles.** As noted, the age pattern above is a
-  profile of different cohorts, not a panel tracking the same people.
+  profile of different cohorts, not a panel tracking the same people, and the
+  confidence intervals across age groups overlap. The age pattern is
+  consistent with lifecycle attenuation bias without proving it.
 
 ## Takeaway
 
@@ -288,12 +300,13 @@ between those two numbers is not a detail of the data. It is the difference
 between measuring where a family currently stands and measuring where it
 stands once temporary luck has washed out.
 
-The age profile makes the same point from the other direction. Measured
-persistence is weakest exactly where income is measured worst, at the start
-and end of a career, and strongest in the middle, where income is closest to
-its plateau. Anyone who reports an intergenerational elasticity without
-saying how income was measured and at what age is reporting a number that
-could easily be a third too small.
+The age profile points in the same direction. Measured persistence looks
+weakest where income is measured worst, at the start and end of a career, and
+strongest in the middle, where income is closest to its plateau, though with
+overlapping confidence intervals this is a suggestive pattern rather than a
+settled one. The practical point stands regardless: anyone who reports an
+intergenerational elasticity without saying how income was measured and at what
+age is reporting a number that could easily be a third too small.
 
 For policy, the reading is sobering but not fixed. If persistence is this
 high, then the economic starting point of a child's parents does substantial
