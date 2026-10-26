@@ -1,0 +1,425 @@
+---
+title: "How Much Life Does an Extra Dollar Buy? The Health-Income Curve in 154 Countries"
+date: 2026-10-26
+categories:
+  - economics
+  - data visualization
+  - R
+format:
+  html:
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+library(readr)
+library(dplyr)
+library(tidyr)
+library(plotly)
+
+# All data come from the analysis repository
+base <- "https://raw.githubusercontent.com/Peterjianghaowen/blog7-health-income/main/"
+
+panel    <- read_csv(paste0(base, "data/processed/panel.csv"))
+by_year  <- read_csv(paste0(base, "results/preston_by_year.csv"))
+shift    <- read_csv(paste0(base, "results/curve_shift.csv"))
+covid    <- read_csv(paste0(base, "results/covid_by_income.csv"))
+outliers <- read_csv(paste0(base, "results/outliers.csv"))
+key      <- read_csv(paste0(base, "results/key_stats.csv"))
+sens     <- read_csv(paste0(base, "results/sensitivity.csv"))
+
+# Helpers for inline numbers
+ks  <- function(stat) key$value[key$stat == stat]
+num <- function(x, d = 2) sprintf(paste0("%.", d, "f"), x)
+grp <- function(g, col) covid[[col]][covid$income_group == g]
+
+# One row per World Bank region: raw name, short label, colour
+region_table <- tibble(
+  region = c("East Asia & Pacific", "Europe & Central Asia",
+             "Latin America & Caribbean",
+             "Middle East, North Africa, Afghanistan & Pakistan",
+             "North America", "South Asia", "Sub-Saharan Africa"),
+  region_short = c("East Asia & Pacific", "Europe & Central Asia",
+                   "Latin America & Caribbean", "Middle East & North Africa",
+                   "North America", "South Asia", "Sub-Saharan Africa"),
+  color = c("#2b8cbe", "#7b3294", "#e6550d", "#a6761d",
+            "#31a354", "#756bb1", "#c51b8a")
+)
+region_colors <- setNames(region_table$color, region_table$region_short)
+```
+
+## The question
+
+Every government publishes a GDP per capita number and a life expectancy number,
+but the two are almost never read against each other across countries. Read
+together, they produce a price. The **Preston curve** plots life expectancy
+against log GDP per capita for all countries in a given year, and its slope
+answers a plain question: *if a country's income doubles, how many more years
+of life does it buy?*
+
+Two things make the curve worth watching over time. First, the slope has been
+strikingly stable: about 4.7 years of life per doubling of income for three
+decades. Stability turns the curve into a measuring instrument, because if the
+price of income is roughly constant, then any movement of the whole curve is a
+change in the *technology of survival* — medicine, sanitation, nutrition,
+vaccination — that income does not capture. Second, the curve has been moving,
+and it has been moving faster at the bottom of the income distribution than at
+the top.
+
+## Data and method
+
+The data come from the [World Bank Indicators API](https://api.worldbank.org/v2)
+(CC BY 4.0), three indicators for every country from 1990 to 2023: life
+expectancy at birth (`SP.DYN.LE00.IN`), GDP per capita at PPP in constant 2021
+international dollars (`NY.GDP.PCAP.PP.KD`), and population (`SP.POP.TOTL`).
+The panel keeps `r n_distinct(panel$country_iso3)` countries over
+`r min(panel$year)`–`r max(panel$year)` (`r format(nrow(panel), big.mark = ",")`
+country-years) after dropping World Bank aggregates, country-years missing any
+indicator, and countries with fewer than one million inhabitants, whose life
+expectancy is estimated from small numbers and swings wildly between years.
+
+The method is deliberately simple. Life expectancy is regressed on
+log2(GDP per capita) separately in each year; the slope is the price of income.
+The fitted curve is then read off at \$5,000 and \$40,000 to measure how it moved
+over time. For the pandemic, each country's actual 2019–2021 change is compared
+with its own 2010–2019 pace, annualised and projected across the two pandemic
+years, so that the comparison is not contaminated by the two windows having
+different lengths.
+
+## 1. What an extra dollar buys
+
+Fitting the curve year by year gives a median slope of
+`r num(ks("median_slope_by_year"))` years of life per doubling of income, and
+`r num(ks("pooled_slope"))` in a pooled model with year effects. The fit is
+good — R² runs from `r num(by_year$r_squared[by_year$year == 1990])` in 1990 to
+`r num(by_year$r_squared[by_year$year == 2023])` in 2023 — so income explains
+most, but far from all, of the cross-country spread in life expectancy.
+
+The residual is the interesting part. Around the line sit countries that reach
+far more, or far less, life expectancy than their income predicts: not
+necessarily rich or poor countries, but countries whose health outcomes are out
+of line with their material circumstances.
+
+## 2. The curve moved up, and moved up more for the poor
+
+Reading the fitted curve at two reference incomes shows how much the whole
+relationship shifted between 1990 and 2019.
+
+```{r}
+#| label: shift-table
+shift |>
+  filter(year %in% c(1990, 2005, 2019, 2021, 2023)) |>
+  transmute(
+    Year = year,
+    `At $5,000`  = sprintf("%+.2f", shift_5k_vs_1990),
+    `At $40,000` = sprintf("%+.2f", shift_40k_vs_1990)
+  ) |>
+  knitr::kable(align = "lrr")
+```
+
+A country at \$5,000 per capita in 2019 would have been expected to live about
+`r num(ks("shift_5k_1990_to_2019"))` years *less* than the 1990 curve predicted
+for that income; at \$40,000 the gap is `r num(ks("shift_40k_1990_to_2019"))`
+years. The curve did not shift up uniformly. It shifted up more at the bottom,
+which is the signature of improvements that matter most where health starts from
+a low base: the disease environment improved for everyone, and poorer countries
+had more to gain from it.
+
+## 3. The interactive view: the curve, one year at a time
+
+A static scatter plot of the 2019 cross-section answers one question — where do
+countries sit relative to income *this year* — and answers it well. It is close
+to useless for the question I actually care about, which is how the
+relationship *moves*. So the main figure below is an interactive one: the
+cross-section is animated from 1990 to 2023, with the fitted curve re-drawn for
+every year.
+
+```{r}
+#| label: interactive-preston
+#| fig-height: 7.3
+
+hover_text <- panel |>
+  left_join(region_table, by = "region") |>
+  mutate(
+    marker_size = 4 + 36 * sqrt(population / max(population)),
+    label = paste0("<b>", country_name, "</b><br>",
+                   "Year: ", year, "<br>",
+                   "Life expectancy: ", round(life_expectancy, 1), " years<br>",
+                   "GDP per capita: $", format(round(gdp_per_capita), big.mark = ","), "<br>",
+                   "Population: ", format(round(population / 1e6), big.mark = ","), " million<br>",
+                   "Region: ", region_short, "<br>",
+                   "Income group: ", income_group)
+  )
+
+curve_all <- by_year |>
+  filter(!is.na(slope)) |>
+  select(year, intercept, slope) |>
+  crossing(gdp_per_capita = exp(seq(log(1500), log(150000), length.out = 100))) |>
+  mutate(predicted = intercept + slope * log2(gdp_per_capita))
+
+plot_ly(
+  data = hover_text,
+  x = ~gdp_per_capita, y = ~life_expectancy,
+  color = ~region_short, frame = ~year,
+  text = ~label, hoverinfo = "text",
+  type = "scatter", mode = "markers",
+  marker = list(size = hover_text$marker_size, opacity = 0.65, sizemin = 3,
+                line = list(width = 0.4, color = "white")),
+  colors = region_colors
+) |>
+  add_trace(
+    data = curve_all, x = ~gdp_per_capita, y = ~predicted, frame = ~year,
+    inherit = FALSE,
+    type = "scatter", mode = "lines",
+    line = list(color = "black", width = 1.4, dash = "dot"),
+    hoverinfo = "none", showlegend = FALSE
+  ) |>
+  layout(
+    xaxis = list(title = "", type = "log", range = c(log10(1500), log10(150000)),
+                 tickvals = c(2000, 5000, 10000, 20000, 50000, 100000),
+                 ticktext = c("$2k", "$5k", "$10k", "$20k", "$50k", "$100k")),
+    yaxis = list(title = "Life expectancy at birth (years)", range = c(38, 90)),
+    title = list(
+      text = "The health-income curve, one year at a time<br><sup>Drag the slider or press play to step through 1990–2023</sup>",
+      font = list(size = 16)
+    ),
+    annotations = list(
+      list(x = 0, y = -0.035, xref = "paper", yref = "paper",
+           xanchor = "left", yanchor = "top", showarrow = FALSE,
+           text = "GDP per capita (PPP, 2021 international dollars, log scale)",
+           font = list(size = 11, color = "#444444"))
+    ),
+    legend = list(title = list(text = "Region"), orientation = "v",
+                  x = 1.02, xanchor = "left", y = 1, yanchor = "top"),
+    margin = list(l = 95, r = 150, t = 80, b = 130),
+    hoverlabel = list(bgcolor = "white")
+  ) |>
+  animation_opts(frame = 700, transition = 300) |>
+  config(displaylogo = FALSE, responsive = TRUE, scrollZoom = TRUE)
+```
+
+Three interactions earn their place here. The **animation** makes the upward
+movement of the curve a thing you watch rather than a number you are told.
+The **legend** switches regions on and off, which separates the question "how
+does income relate to life expectancy" from "is the Sub-Saharan African cluster
+tight or is it scattered", and the answer is visibly not tight. The **hover
+tooltips** name every country and report its life expectancy, GDP per capita,
+population, region and income group, so any point in the cloud can be
+identified and checked. Bubble area is proportional to population, so the
+reader can see that the countries that matter for most of the world's people are
+not the ones sitting furthest from the line.
+
+## 4. The pandemic interrupted the pattern
+
+Between 2019 and 2021 life expectancy fell in almost every country in the world,
+and the interruption was not spread evenly across income levels. Comparing what
+happened against each country's own pre-pandemic pace isolates the break.
+
+```{r}
+#| label: covid-table
+covid |>
+  mutate(income_group = factor(income_group,
+                               levels = c("Low", "Lower-middle", "Upper-middle", "High"))) |>
+  arrange(income_group) |>
+  transmute(
+    `Income group` = income_group,
+    n = n,
+    `2010–2019 (yr/yr)` = sprintf("%+.2f", med_pre_pace),
+    `2019–2021 (yr/yr)` = sprintf("%+.2f", med_covid_pace),
+    `Behind trend` = sprintf("%.2f years", med_excess)
+  ) |>
+  knitr::kable(align = "lrcrr")
+```
+
+Life expectancy was rising in every income group before the pandemic and fell
+in every income group during it. The upper-middle group lost the most —
+`r num(abs(grp("Upper-middle", "med_excess")))` years against its own trend —
+and the loss is concentrated: Paraguay, South Africa, Botswana, Peru, Ecuador
+and Mexico each lost four to six years. High-income countries lost least, and
+the ones that lost almost nothing are the ones with the lowest COVID mortality
+and the slowest pre-pandemic pace: Australia, New Zealand, Norway, Japan.
+
+![](https://raw.githubusercontent.com/Peterjianghaowen/blog7-health-income/main/results/fig2_covid_by_income.png)
+
+The comparison uses medians rather than means on purpose. In a group of 21
+low-income countries, one country in a mortality crisis — the Central African
+Republic — moves the mean a long way, and it moves it in the wrong direction:
+the mean low-income loss would read `r num(abs(grp("Low", "mean_excess")))`
+years instead of `r num(abs(grp("Low", "med_excess")))`.
+
+## 5. Who is above and below the curve
+
+Residuals are taken from a pooled regression with year fixed effects, so each
+country is compared with what other countries were achieving in the same year
+rather than with a global average that ignores the curve's own movement. The
+twelve largest positive and negative residuals over 1990–2023 are in
+`results/outliers.csv`; the largest gaps are Albania
+(`r num(outliers$mean_resid[1])` years), West Bank and Gaza
+(`r num(outliers$mean_resid[2])` years) and China
+(`r num(outliers$mean_resid[3])` years) on one side, and Nigeria
+(`r num(abs(outliers$mean_resid[nrow(outliers)]))` years), Eswatini
+(`r num(abs(outliers$mean_resid[nrow(outliers) - 1]))` years) and Equatorial
+Guinea on the other. Every one of the twelve countries below the curve is in
+Sub-Saharan Africa.
+
+![](https://raw.githubusercontent.com/Peterjianghaowen/blog7-health-income/main/results/fig3_outliers.png)
+
+Income is not the same thing as health. A country can be healthy for reasons
+that are not in its income — a strong public health system, a diet, a low
+violence rate — and that is visible in the residuals, which are large, stable
+over three decades, and concentrated in a handful of countries with recognizable
+stories behind them.
+
+## 6. Spotlighting a single country
+
+The animation answers "how did the curve move". The figure below answers the
+complementary question: how did *individual countries* move? Every country is
+drawn as a thin grey line that can be hovered, the seven regional medians are
+highlighted and can be switched on and off in the legend, and the menu
+spotlights one country against the backdrop of all the others. Switch it to
+China or Nigeria and the difference in starting point, slope and pandemic dip
+is immediate in a way that no table conveys.
+
+```{r}
+#| label: interactive-trajectories
+#| fig-height: 6.6
+
+all_lines <- panel |>
+  arrange(country_iso3, year) |>
+  mutate(label = paste0("<b>", country_name, "</b><br>Year: ", year,
+                        "<br>Life expectancy: ", round(life_expectancy, 1), " years"))
+
+regional_medians <- panel |>
+  left_join(region_table, by = "region") |>
+  group_by(region, region_short, year) |>
+  summarise(median_life = median(life_expectancy), .groups = "drop")
+
+# The menu offers the countries the analysis flagged as interesting, plus a
+# spread of large economies, so it stays usable.
+spotlight <- sort(unique(c(
+  outliers$country_name,
+  c("China", "India", "United States", "Brazil", "Nigeria", "Japan", "Germany",
+    "Russia", "Indonesia", "Mexico", "Bangladesh", "Ethiopia")
+)))
+spotlight <- spotlight[spotlight %in% panel$country_name]
+
+n_regions    <- nrow(region_table)
+n_countries  <- length(spotlight)
+total_traces <- 1 + n_regions + n_countries
+
+# The dropdown is built from a visibility vector over the traces:
+# 1 = all countries, 2..(1+n_regions) = the regional medians, the rest = one
+# trace per spotlit country.
+make_visible <- function(country) {
+  vis <- rep("legendonly", total_traces)
+  vis[1] <- "true"
+  vis[2:(1 + n_regions)] <- "true"
+  vis[1 + n_regions + match(country, spotlight)] <- "true"
+  vis
+}
+
+p5 <- plot_ly() |>
+  add_trace(
+    data = all_lines, x = ~year, y = ~life_expectancy, text = ~label, hoverinfo = "text",
+    type = "scatter", mode = "lines", line = list(color = "#c9c9c9", width = 0.6),
+    showlegend = FALSE, inherit = FALSE
+  )
+
+for (i in seq_len(n_regions)) {
+  p5 <- p5 |>
+    add_trace(
+      data = regional_medians |> filter(region == region_table$region[i]),
+      x = ~year, y = ~median_life, name = region_table$region_short[i],
+      type = "scatter", mode = "lines",
+      line = list(width = 2.6, color = region_table$color[i]),
+      hoverinfo = "y", inherit = FALSE
+    )
+}
+
+for (cc in spotlight) {
+  p5 <- p5 |>
+    add_trace(
+      data = panel |> filter(country_name == cc),
+      x = ~year, y = ~life_expectancy,
+      name = cc, type = "scatter", mode = "lines",
+      line = list(color = "#d6336c", width = 2.2),
+      hoverinfo = "x+y", showlegend = FALSE,
+      visible = if (cc == spotlight[1]) "true" else "legendonly",
+      inherit = FALSE
+    )
+}
+
+p5 |>
+  layout(
+    xaxis = list(title = "Year", dtick = 5),
+    yaxis = list(title = "Life expectancy at birth (years)", range = c(35, 90)),
+    annotations = list(
+      list(x = 0, y = 1.20, xref = "paper", yref = "paper", xanchor = "left", yanchor = "bottom",
+           showarrow = FALSE, text = "<b>Life expectancy trajectories, 1990–2023</b>",
+           font = list(size = 16)),
+      list(x = 0, y = 1.13, xref = "paper", yref = "paper", xanchor = "left", yanchor = "bottom",
+           showarrow = FALSE, align = "left",
+           text = "Every country is a thin grey line. Use the menu to spotlight one of them.",
+           font = list(size = 11, color = "#666666"))
+    ),
+    legend = list(title = list(text = "Regional median"), orientation = "v",
+                  x = 1.02, xanchor = "left", y = 1, yanchor = "top"),
+    margin = list(l = 70, r = 190, t = 150, b = 60),
+    updatemenus = list(list(
+      type = "dropdown", direction = "down", x = 0, y = 1.06, xanchor = "left", yanchor = "bottom",
+      active = 0,
+      buttons = lapply(spotlight, function(cc) {
+        list(label = cc, method = "restyle", args = list(list(visible = make_visible(cc))))
+      })
+    ))
+  ) |>
+  config(displaylogo = FALSE, responsive = TRUE)
+```
+
+## Robustness
+
+Seven of the `r format(nrow(panel), big.mark = ",")` country-year observations
+are acute mortality crises rather than informative points on the
+income–health relation: Rwanda in 1994 (12.2 years of life), Somalia in
+1991–93, and the Central African Republic in 2009, 2019 and 2022. They are
+genuine observations and they stay in the main analysis, but the headline
+numbers were re-estimated without them. The median slope moves from
+`r num(sens$median_slope[1])` to `r num(sens$median_slope[2])`, the shift at
+\$5,000 from `r num(sens$shift_5k_to_2019[1])` to
+`r num(sens$shift_5k_to_2019[2])` years, and the pandemic losses are unchanged
+to two decimals. The conclusions do not depend on the crisis years.
+
+## Limitations
+
+- **The curve is cross-sectional.** It describes what countries at a given
+  income achieve, not what happens to a country when its income changes, so it
+  is not a causal return on income.
+- **Life expectancy is a population average.** It says nothing about inequality
+  within a country.
+- **Income groups are the current classification applied to all years**, so a
+  country that moved between groups is counted in its present group throughout.
+- **The pandemic window is short.** Some of the 2021 "excess loss" is
+  catch-up rather than permanent loss, and a longer window would spread the
+  same total over more years.
+
+## Takeaway
+
+Income buys life, and the price has been remarkably stable: about
+`r num(ks("median_slope_by_year"))` years per doubling, every year, for thirty
+years. The interesting part is what happens around that price. The curve has
+been drifting upward underneath it — faster at the bottom, so a poor country
+gained about `r num(ks("shift_5k_1990_to_2019"))` years between 1990 and 2019
+where a rich one gained `r num(ks("shift_40k_1990_to_2019"))` — which is what
+it looks like when public health technology improves faster than income grows.
+And then the pandemic took it all back for two years, everywhere, with the
+middle-income countries losing the most against their own trend.
+
+None of this says that income stops mattering. The slope is still about 4.7
+years per doubling. What the analysis adds is the size of the residuals: some
+countries live many years more, and some many years less, than their income
+predicts. Income is the price of health, but it is not the whole bill.
+
+*Code and data: [github.com/Peterjianghaowen/blog7-health-income](https://github.com/Peterjianghaowen/blog7-health-income). Data source: World Bank Indicators (CC BY 4.0).*
