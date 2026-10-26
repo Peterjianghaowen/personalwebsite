@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-10-25">
+
+<title>How Much of a Parent’s Success Does a Child Inherit? Matching Parents and Children with SQL – Haowen Jiang</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<script src="../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-6033a600180109c3731f6a886c29932c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">Haowen Jiang</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../bio.html"> 
+<span class="menu-text">About Me</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../resume.html"> 
+<span class="menu-text">Resume</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../blog/index.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">How Much of a Parent’s Success Does a Child Inherit? Matching Parents and Children with SQL</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">economics</div>
+    <div class="quarto-category">SQL</div>
+    <div class="quarto-category">Python</div>
+  </div>
+  </div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 25, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scales)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># All data come from the analysis repository</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>base <span class="ot">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/Peterjianghaowen/blog6-sql-ige/main/"</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>main   <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">paste0</span>(base, <span class="st">"results/ige_main.csv"</span>))</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>by_age <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">paste0</span>(base, <span class="st">"results/ige_by_age.csv"</span>))</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>funnel <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">paste0</span>(base, <span class="st">"results/sample_funnel.csv"</span>))</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Look up one estimate from the overall table</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>est <span class="ot">&lt;-</span> <span class="cf">function</span>(measure, col) {</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  main[[col]][<span class="fu">grepl</span>(measure, main<span class="sc">$</span>income_measure, <span class="at">fixed =</span> <span class="cn">TRUE</span>)]</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Look up one estimate from the by-age table</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>age_est <span class="ot">&lt;-</span> <span class="cf">function</span>(group, measure, col) {</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  by_age[[col]][by_age<span class="sc">$</span>age_group <span class="sc">==</span> group <span class="sc">&amp;</span> by_age<span class="sc">$</span>income_measure <span class="sc">==</span> measure]</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Look up one step of the sample funnel</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>step <span class="ot">&lt;-</span> <span class="cf">function</span>(pattern) {</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  funnel<span class="sc">$</span>n[<span class="fu">grepl</span>(pattern, funnel<span class="sc">$</span>step, <span class="at">fixed =</span> <span class="cn">TRUE</span>)]</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>num <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">d =</span> <span class="dv">3</span>) <span class="fu">sprintf</span>(<span class="fu">paste0</span>(<span class="st">"%."</span>, d, <span class="st">"f"</span>), x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<section id="the-question" class="level2">
+<h2 class="anchored" data-anchor-id="the-question">The question</h2>
+<p>How much of a parent’s economic position does a child inherit? The intergenerational income elasticity (IGE) compresses the answer into a single number: the percentage change in a child’s income associated with a 1% change in their parent’s income. An IGE of 0.30 means a family whose income is 10% above average produces a child whose income is roughly 3% above average.</p>
+<p>It is one of the most stable facts in economics, and one of the most policy-relevant, because it sets the ceiling on how far inequality can move between generations. If persistence is high, then the starting position of a child’s parents does a great deal of work in determining where the child ends up, and policy that treats markets as the efficient solver of income distribution has to be reconsidered.</p>
+<p>Measuring it is harder than it looks. Parents and children have to be matched across decades of panel data. Their incomes have to be measured in a way that is not distorted by a single good or bad year. And the child’s age has to be chosen carefully, because a 28-year-old’s income is not yet their long-run income. This post does the matching with SQL, which turns out to be a natural fit: a <code>JOIN</code> on identifiers, a <code>GROUP BY</code> on the child, and an <code>AVG()</code> over the matched parents.</p>
+</section>
+<section id="data-and-method" class="level2">
+<h2 class="anchored" data-anchor-id="data-and-method">Data and method</h2>
+<p>The data are the <strong>Panel Study of Income Dynamics</strong> (PSID), the long-running panel of the Institute for Social Research at the University of Michigan. Since 1968 the study has re-interviewed the same families, and most of the same people, every year. Two files are needed:</p>
+<ol type="1">
+<li>The <strong>2023 individual and family file</strong>, downloaded from the PSID Data Center with the variables for family income in 2020 and 2022, age and family unit in 2021 and 2023, and the 1968 identifiers. It contains 27,295 people.</li>
+<li>The <strong>2023 Parent Identification File</strong> from the packaged data, which gives, for every child in the study, the identifiers of the biological mother and father. It has 103,725 rows, and identifies a mother for 60,024 of them and a father for 53,488.</li>
+</ol>
+<p>A person in the PSID is identified by <strong>two</strong> numbers, not one: the 1968 interview number of the household they were born into, and their person number within it. Person numbers restart in every household, so a join on the person number alone would match thousands of unrelated people. Every join below is therefore on the pair.</p>
+<p>Matching is done in DuckDB, an in-process analytical database, so the whole parent-child match is expressed as SQL run from Python rather than as row-by-row code. Three steps do the work:</p>
+<ul>
+<li><strong>Join.</strong> <code>parent_links</code> is joined to the individual file twice, once to the mother and once to the father, and the two results are combined with <code>UNION ALL</code>. Each row of the result is one child-parent pair.</li>
+<li><strong>Aggregate.</strong> A <code>GROUP BY</code> on the child collapses the pairs back to one row per child, and <code>AVG()</code> combines the incomes of whichever parents qualify.</li>
+<li><strong>Filter inside the aggregate.</strong> The eligibility rules live in <code>CASE</code> expressions <em>inside</em> the <code>AVG()</code>, so that ineligible parents are treated as <code>NULL</code> and skipped, rather than being averaged in as zeros.</li>
+</ul>
+<p>The most important eligibility rule is that the parent must live in a different household from the child. If they lived together, the “parent income” and the “child income” would be the same family income by construction, and the regression would be measuring nothing but the fact that one number equals another.</p>
+<p>The final sample is children aged 25 to 55 in 2023, with positive income for both themselves and the matched parent.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>funnel <span class="sc">|&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">Step =</span> step,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">People =</span> <span class="fu">format</span>(n, <span class="at">big.mark =</span> <span class="st">","</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">align =</span> <span class="st">"lr"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 89%">
+<col style="width: 10%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Step</th>
+<th style="text-align: right;">People</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">People in the PSID 2023 individual file</td>
+<td style="text-align: right;">27,295</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Rows in the 2023 parent identification file</td>
+<td style="text-align: right;">103,725</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">of which: a mother is identified</td>
+<td style="text-align: right;">60,024</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">of which: a father is identified</td>
+<td style="text-align: right;">53,488</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Parent-child pairs matched to a parent record</td>
+<td style="text-align: right;">23,938</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Distinct children with at least one matched parent</td>
+<td style="text-align: right;">15,728</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Children with both a mother and a father matched</td>
+<td style="text-align: right;">8,210</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Children whose matched parent has positive income (2022)</td>
+<td style="text-align: right;">4,893</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Children whose matched parent has positive income (2020 and 2022)</td>
+<td style="text-align: right;">4,139</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Regression sample: ages 25-55, positive child and parent income</td>
+<td style="text-align: right;">3,167</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="matching-parents-to-children-with-sql" class="level2">
+<h2 class="anchored" data-anchor-id="matching-parents-to-children-with-sql">1. Matching parents to children with SQL</h2>
+<p>The matching pipeline narrows a large panel down to a few thousand usable parent-child pairs, and it is worth following where the observations go.</p>
+<p>The parent identification file starts with 103,725 rows, but only 23,938 of them can be joined to a parent who is actually present in the 2023 individual file with a recorded income. That yields 15,728 distinct children with at least one matched parent, of whom 8,210 have both a mother and a father matched and the rest have only one.</p>
+<p>Requiring a matched parent with positive income cuts the pool further, to 4,893 children for the single-year measure and 4,139 for the two-year measure, since the two-year average needs both years to be present. Adding the age restriction and positive child income leaves the final regression sample of 3,167 children.</p>
+<p>Two features of this design are worth flagging, because they are where a parent-child match usually goes wrong. First, the join is on the <em>pair</em> of identifiers, never on a single one. Second, parents living with the child are excluded inside the aggregate, so a child is never compared with a parent whose household income is mechanically identical to the child’s own.</p>
+</section>
+<section id="one-year-of-income-is-a-noisy-signal" class="level2">
+<h2 class="anchored" data-anchor-id="one-year-of-income-is-a-noisy-signal">2. One year of income is a noisy signal</h2>
+<p>A single year’s family income mixes two very different things: where a family stands permanently, and whether they happened to have a good or a bad year. Bonuses, overtime, unemployment spells, illness, and a divorce that changes household composition all move measured income without moving economic status. The child’s own income at 25 is even noisier than the parent’s, because a twenty-five-year-old’s earnings are mostly a function of where they are on their career ramp rather than of their eventual position.</p>
+<p>Two regressions on the <em>same</em> 3,167 children isolate the effect of measurement alone: one uses only 2022 income, the other averages 2020 and 2022.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>main <span class="sc">|&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Income measure</span><span class="st">`</span> <span class="ot">=</span> income_measure,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">IGE =</span> <span class="fu">num</span>(ige),</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Robust SE</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">num</span>(robust_se),</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">95% CI</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(<span class="st">"["</span>, <span class="fu">num</span>(ci_low), <span class="st">", "</span>, <span class="fu">num</span>(ci_high), <span class="st">"]"</span>),</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">R-squared</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">num</span>(r_squared)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">`</span><span class="at">Income measure</span><span class="st">`</span>, IGE, <span class="st">`</span><span class="at">Robust SE</span><span class="st">`</span>, <span class="st">`</span><span class="at">95% CI</span><span class="st">`</span>, <span class="st">`</span><span class="at">R-squared</span><span class="st">`</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">align =</span> <span class="st">"lrccc"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 40%">
+<col style="width: 8%">
+<col style="width: 14%">
+<col style="width: 21%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Income measure</th>
+<th style="text-align: right;">IGE</th>
+<th style="text-align: center;">Robust SE</th>
+<th style="text-align: center;">95% CI</th>
+<th style="text-align: center;">R-squared</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Single-year (2022)</td>
+<td style="text-align: right;">0.275</td>
+<td style="text-align: center;">0.020</td>
+<td style="text-align: center;">[0.236, 0.314]</td>
+<td style="text-align: center;">0.073</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Two-year average (2020, 2022)</td>
+<td style="text-align: right;">0.305</td>
+<td style="text-align: center;">0.018</td>
+<td style="text-align: center;">[0.269, 0.340]</td>
+<td style="text-align: center;">0.092</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="https://raw.githubusercontent.com/Peterjianghaowen/blog6-sql-ige/main/results/fig1_ige_overall.png" class="img-fluid"></p>
+<p>Measuring income over two years instead of one raises the estimated IGE from 0.275 to 0.305, and raises the R-squared from 0.073 to 0.092. Both moves point the same way, and the reason is mechanical rather than mysterious. Because a child’s income appears on the left-hand side and the parent’s on the right-hand side, a transitory shock in either household pushes the estimate toward zero: it attenuates the relationship. Averaging two years shrinks the transitory component on both sides at once, so more of what is left is genuine economic status, and the regression has more real signal to work with.</p>
+<p>The implied magnitude is easy to state: a 10% higher parental income is associated with roughly a 30.5% higher income for the child. That is a meaningful but far from complete transmission of advantage across generations.</p>
+</section>
+<section id="when-you-measure-a-child-matters" class="level2">
+<h2 class="anchored" data-anchor-id="when-you-measure-a-child-matters">3. When you measure a child matters</h2>
+<p>The second source of bias is timing. A child’s income is not a fixed characteristic; it moves through a career. Early in the life cycle, earnings are still climbing steeply, so a bad year or a career break depresses measured income far below where the child will eventually settle. Late in the life cycle, earnings plateau and then often fall, and measured income again drifts away from long-run status. In both cases, the measurement error is not classical noise that averages out of a large sample. It is correlated with the child’s age, and it pushes the estimate toward zero precisely in the groups where the measurement is worst.</p>
+<p>To see this, the same regressions are run separately by the child’s age in 2023.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>by_age <span class="sc">|&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Child age</span><span class="st">`</span> <span class="ot">=</span> age_group,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Income measure</span><span class="st">`</span> <span class="ot">=</span> income_measure,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> n,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">IGE =</span> <span class="fu">num</span>(ige),</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Robust SE</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">num</span>(robust_se),</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">95% CI</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">paste0</span>(<span class="st">"["</span>, <span class="fu">num</span>(ci_low), <span class="st">", "</span>, <span class="fu">num</span>(ci_high), <span class="st">"]"</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">`</span><span class="at">Child age</span><span class="st">`</span>, <span class="st">`</span><span class="at">Income measure</span><span class="st">`</span>, n, IGE, <span class="st">`</span><span class="at">Robust SE</span><span class="st">`</span>, <span class="st">`</span><span class="at">95% CI</span><span class="st">`</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">align =</span> <span class="st">"llrccc"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 25%">
+<col style="width: 7%">
+<col style="width: 10%">
+<col style="width: 16%">
+<col style="width: 24%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Child age</th>
+<th style="text-align: left;">Income measure</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: center;">IGE</th>
+<th style="text-align: center;">Robust SE</th>
+<th style="text-align: center;">95% CI</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">25-34</td>
+<td style="text-align: left;">Single-year</td>
+<td style="text-align: right;">1218</td>
+<td style="text-align: center;">0.303</td>
+<td style="text-align: center;">0.031</td>
+<td style="text-align: center;">[0.243, 0.364]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">25-34</td>
+<td style="text-align: left;">Two-year average</td>
+<td style="text-align: right;">1218</td>
+<td style="text-align: center;">0.340</td>
+<td style="text-align: center;">0.025</td>
+<td style="text-align: center;">[0.291, 0.390]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">35-44</td>
+<td style="text-align: left;">Single-year</td>
+<td style="text-align: right;">1281</td>
+<td style="text-align: center;">0.316</td>
+<td style="text-align: center;">0.035</td>
+<td style="text-align: center;">[0.247, 0.384]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">35-44</td>
+<td style="text-align: left;">Two-year average</td>
+<td style="text-align: right;">1281</td>
+<td style="text-align: center;">0.367</td>
+<td style="text-align: center;">0.031</td>
+<td style="text-align: center;">[0.307, 0.428]</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">45-55</td>
+<td style="text-align: left;">Single-year</td>
+<td style="text-align: right;">668</td>
+<td style="text-align: center;">0.270</td>
+<td style="text-align: center;">0.039</td>
+<td style="text-align: center;">[0.193, 0.347]</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">45-55</td>
+<td style="text-align: left;">Two-year average</td>
+<td style="text-align: right;">668</td>
+<td style="text-align: center;">0.311</td>
+<td style="text-align: center;">0.044</td>
+<td style="text-align: center;">[0.225, 0.396]</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><img src="https://raw.githubusercontent.com/Peterjianghaowen/blog6-sql-ige/main/results/fig2_ige_by_age.png" class="img-fluid"></p>
+<p>The profile is not flat. Under the two-year measure the estimated IGE rises from 0.340 for children aged 25-34 to a peak of 0.367 for children aged 35-44, then falls back to 0.311 for the oldest group. The single-year measure follows the same shape, peaking at 0.316 in the middle group.</p>
+<p>The middle of the range is where the measurement works best. Earnings in the mid-thirties to mid-forties are close to their peak, so current income is a fair proxy for long-run economic status and the attenuation is smallest. At both ends of the range, measured income is a worse proxy for status, and the estimate falls with it. This is the attenuation bias that the lifecycle literature warns about, and it has a direct practical consequence: an IGE measured on young adults will understate the true intergenerational persistence of income, potentially by a large margin.</p>
+<p>One caveat belongs with this result. These are age groups in a single cross-section, not the same people followed over time, so the pattern mixes an age effect with a cohort effect. Children aged 45-55 in 2023 were in their twenties during the 1990s, and children aged 25-34 were in theirs during the 2010s; they entered the labour market under very different conditions. Part of the decline in the oldest group may therefore be cohort-specific rather than a purely mechanical consequence of measuring income too late in life.</p>
+</section>
+<section id="limitations" class="level2">
+<h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
+<ul>
+<li><strong>Two years is not a long run.</strong> Averaging 2020 and 2022 reduces but does not remove measurement error, which is one reason the R-squared stays near 0.092. The estimates preferred in the literature use much longer income windows, and they are typically larger.</li>
+<li><strong>Family income, not individual income.</strong> The PSID family income measure includes a spouse’s earnings. A parent’s measure is therefore household income in the parent’s own household, and a child’s measure is household income in the child’s household.</li>
+<li><strong>2020 and 2022 are unusual years.</strong> They contain the pandemic and its immediate aftermath, when labour markets and household composition moved sharply. The two-year average spans some of that, but not all of it.</li>
+<li><strong>Selection.</strong> The sample contains children who are observed in 2023 with positive income and whose parent is separately observed. Children who left the study, or who are not separately observed, do not appear, and their absence is unlikely to be random.</li>
+<li><strong>No controls.</strong> These are single-variable log-log regressions. Adding parental characteristics and child background would change the coefficient from a measure of rank persistence into a structural parameter, which is a different and more ambitious object.</li>
+<li><strong>Cross-sectional age profiles.</strong> As noted, the age pattern above is a profile of different cohorts, not a panel tracking the same people.</li>
+</ul>
+</section>
+<section id="takeaway" class="level2">
+<h2 class="anchored" data-anchor-id="takeaway">Takeaway</h2>
+<p>Roughly 30% of the income advantage a parent holds is passed on to the child, using two years of income to measure both: an IGE of 0.305, against 0.275 when a single year is used. The gap between those two numbers is not a detail of the data. It is the difference between measuring where a family currently stands and measuring where it stands once temporary luck has washed out.</p>
+<p>The age profile makes the same point from the other direction. Measured persistence is weakest exactly where income is measured worst, at the start and end of a career, and strongest in the middle, where income is closest to its plateau. Anyone who reports an intergenerational elasticity without saying how income was measured and at what age is reporting a number that could easily be a third too small.</p>
+<p>For policy, the reading is sobering but not fixed. If persistence is this high, then the economic starting point of a child’s parents does substantial work in determining where the child ends up, and the returns to interventions that raise the bottom of the distribution are correspondingly large.</p>
+<p><em>Code and data: <a href="https://github.com/Peterjianghaowen/blog6-sql-ige">github.com/Peterjianghaowen/blog6-sql-ige</a>. Data source: Panel Study of Income Dynamics, Institute for Social Research, University of Michigan.</em></p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p><img src="../../../images/UniversityofPennsylvania_FullLogo_RGB.png" class="img-fluid" width="100"></p>
+</div>   
+    <div class="nav-footer-center">
+<p>© 2026 Haowen Jiang</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

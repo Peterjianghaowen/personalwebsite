@@ -1,0 +1,303 @@
+---
+title: "How Much of a Parent's Success Does a Child Inherit? Matching Parents and Children with SQL"
+date: 2026-10-25
+categories:
+  - economics
+  - SQL
+  - Python
+format:
+  html:
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+library(readr)
+library(dplyr)
+library(scales)
+
+# All data come from the analysis repository
+base <- "https://raw.githubusercontent.com/Peterjianghaowen/blog6-sql-ige/main/"
+
+main   <- read_csv(paste0(base, "results/ige_main.csv"))
+by_age <- read_csv(paste0(base, "results/ige_by_age.csv"))
+funnel <- read_csv(paste0(base, "results/sample_funnel.csv"))
+
+# Look up one estimate from the overall table
+est <- function(measure, col) {
+  main[[col]][grepl(measure, main$income_measure, fixed = TRUE)]
+}
+
+# Look up one estimate from the by-age table
+age_est <- function(group, measure, col) {
+  by_age[[col]][by_age$age_group == group & by_age$income_measure == measure]
+}
+
+# Look up one step of the sample funnel
+step <- function(pattern) {
+  funnel$n[grepl(pattern, funnel$step, fixed = TRUE)]
+}
+
+num <- function(x, d = 3) sprintf(paste0("%.", d, "f"), x)
+```
+
+## The question
+
+How much of a parent's economic position does a child inherit? The
+intergenerational income elasticity (IGE) compresses the answer into a single
+number: the percentage change in a child's income associated with a 1% change
+in their parent's income. An IGE of 0.30 means a family whose income is 10%
+above average produces a child whose income is roughly 3% above average.
+
+It is one of the most stable facts in economics, and one of the most
+policy-relevant, because it sets the ceiling on how far inequality can move
+between generations. If persistence is high, then the starting position of a
+child's parents does a great deal of work in determining where the child ends
+up, and policy that treats markets as the efficient solver of income
+distribution has to be reconsidered.
+
+Measuring it is harder than it looks. Parents and children have to be matched
+across decades of panel data. Their incomes have to be measured in a way that
+is not distorted by a single good or bad year. And the child's age has to be
+chosen carefully, because a 28-year-old's income is not yet their long-run
+income. This post does the matching with SQL, which turns out to be a natural
+fit: a `JOIN` on identifiers, a `GROUP BY` on the child, and an `AVG()` over
+the matched parents.
+
+## Data and method
+
+The data are the **Panel Study of Income Dynamics** (PSID), the long-running
+panel of the Institute for Social Research at the University of Michigan. Since
+1968 the study has re-interviewed the same families, and most of the same
+people, every year. Two files are needed:
+
+1. The **2023 individual and family file**, downloaded from the PSID Data
+   Center with the variables for family income in 2020 and 2022, age and family
+   unit in 2021 and 2023, and the 1968 identifiers. It contains
+   `r format(step("People in the PSID"), big.mark = ",")` people.
+2. The **2023 Parent Identification File** from the packaged data, which gives,
+   for every child in the study, the identifiers of the biological mother and
+   father. It has `r format(step("Rows in the 2023 parent"), big.mark = ",")`
+   rows, and identifies a mother for `r format(step("a mother is identified"), big.mark = ",")`
+   of them and a father for `r format(step("a father is identified"), big.mark = ",")`.
+
+A person in the PSID is identified by **two** numbers, not one: the 1968
+interview number of the household they were born into, and their person
+number within it. Person numbers restart in every household, so a join on the
+person number alone would match thousands of unrelated people. Every join
+below is therefore on the pair.
+
+Matching is done in DuckDB, an in-process analytical database, so the whole
+parent-child match is expressed as SQL run from Python rather than as
+row-by-row code. Three steps do the work:
+
+- **Join.** `parent_links` is joined to the individual file twice, once to the
+  mother and once to the father, and the two results are combined with
+  `UNION ALL`. Each row of the result is one child-parent pair.
+- **Aggregate.** A `GROUP BY` on the child collapses the pairs back to one row
+  per child, and `AVG()` combines the incomes of whichever parents qualify.
+- **Filter inside the aggregate.** The eligibility rules live in `CASE`
+  expressions *inside* the `AVG()`, so that ineligible parents are treated as
+  `NULL` and skipped, rather than being averaged in as zeros.
+
+The most important eligibility rule is that the parent must live in a
+different household from the child. If they lived together, the "parent
+income" and the "child income" would be the same family income by
+construction, and the regression would be measuring nothing but the fact that
+one number equals another.
+
+The final sample is children aged 25 to 55 in 2023, with positive income for
+both themselves and the matched parent.
+
+```{r}
+#| label: funnel-table
+funnel |>
+  transmute(
+    Step = step,
+    People = format(n, big.mark = ",")
+  ) |>
+  knitr::kable(align = "lr")
+```
+
+## 1. Matching parents to children with SQL
+
+The matching pipeline narrows a large panel down to a few thousand usable
+parent-child pairs, and it is worth following where the observations go.
+
+The parent identification file starts with
+`r format(step("Rows in the 2023 parent"), big.mark = ",")` rows, but only
+`r format(step("Parent-child pairs matched"), big.mark = ",")` of them can be
+joined to a parent who is actually present in the 2023 individual file with a
+recorded income. That yields
+`r format(step("Distinct children with at least"), big.mark = ",")` distinct
+children with at least one matched parent, of whom
+`r format(step("both a mother and a father"), big.mark = ",")` have both a
+mother and a father matched and the rest have only one.
+
+Requiring a matched parent with positive income cuts the pool further, to
+`r format(step("positive income (2022)"), big.mark = ",")` children for the
+single-year measure and `r format(step("positive income (2020 and 2022)"), big.mark = ",")`
+for the two-year measure, since the two-year average needs both years to be
+present. Adding the age restriction and positive child income leaves the final
+regression sample of `r format(step("Regression sample"), big.mark = ",")`
+children.
+
+Two features of this design are worth flagging, because they are where a
+parent-child match usually goes wrong. First, the join is on the *pair* of
+identifiers, never on a single one. Second, parents living with the child are
+excluded inside the aggregate, so a child is never compared with a parent whose
+household income is mechanically identical to the child's own.
+
+## 2. One year of income is a noisy signal
+
+A single year's family income mixes two very different things: where a family
+stands permanently, and whether they happened to have a good or a bad year.
+Bonuses, overtime, unemployment spells, illness, and a divorce that changes
+household composition all move measured income without moving economic status.
+The child's own income at 25 is even noisier than the parent's, because a
+twenty-five-year-old's earnings are mostly a function of where they are on
+their career ramp rather than of their eventual position.
+
+Two regressions on the *same* `r format(step("Regression sample"), big.mark = ",")`
+children isolate the effect of measurement alone: one uses only 2022 income,
+the other averages 2020 and 2022.
+
+```{r}
+#| label: main-table
+main |>
+  mutate(
+    `Income measure` = income_measure,
+    IGE = num(ige),
+    `Robust SE` = num(robust_se),
+    `95% CI` = paste0("[", num(ci_low), ", ", num(ci_high), "]"),
+    `R-squared` = num(r_squared)
+  ) |>
+  select(`Income measure`, IGE, `Robust SE`, `95% CI`, `R-squared`) |>
+  knitr::kable(align = "lrccc")
+```
+
+![](https://raw.githubusercontent.com/Peterjianghaowen/blog6-sql-ige/main/results/fig1_ige_overall.png)
+
+Measuring income over two years instead of one raises the estimated IGE from
+`r num(est("Single-year", "ige"))` to `r num(est("Two-year average", "ige"))`,
+and raises the R-squared from `r num(est("Single-year", "r_squared"))` to
+`r num(est("Two-year average", "r_squared"))`. Both moves point the same way,
+and the reason is mechanical rather than mysterious. Because a child's income
+appears on the left-hand side and the parent's on the right-hand side, a
+transitory shock in either household pushes the estimate toward zero: it
+attenuates the relationship. Averaging two years shrinks the transitory
+component on both sides at once, so more of what is left is genuine economic
+status, and the regression has more real signal to work with.
+
+The implied magnitude is easy to state: a 10% higher parental income is
+associated with roughly a `r sprintf("%.1f", 100 * est("Two-year average", "ige"))`%
+higher income for the child. That is a meaningful but far from complete
+transmission of advantage across generations.
+
+## 3. When you measure a child matters
+
+The second source of bias is timing. A child's income is not a fixed
+characteristic; it moves through a career. Early in the life cycle, earnings
+are still climbing steeply, so a bad year or a career break depresses measured
+income far below where the child will eventually settle. Late in the life
+cycle, earnings plateau and then often fall, and measured income again drifts
+away from long-run status. In both cases, the measurement error is not
+classical noise that averages out of a large sample. It is correlated with the
+child's age, and it pushes the estimate toward zero precisely in the groups
+where the measurement is worst.
+
+To see this, the same regressions are run separately by the child's age in
+2023.
+
+```{r}
+#| label: age-table
+by_age |>
+  mutate(
+    `Child age` = age_group,
+    `Income measure` = income_measure,
+    n = n,
+    IGE = num(ige),
+    `Robust SE` = num(robust_se),
+    `95% CI` = paste0("[", num(ci_low), ", ", num(ci_high), "]")
+  ) |>
+  select(`Child age`, `Income measure`, n, IGE, `Robust SE`, `95% CI`) |>
+  knitr::kable(align = "llrccc")
+```
+
+![](https://raw.githubusercontent.com/Peterjianghaowen/blog6-sql-ige/main/results/fig2_ige_by_age.png)
+
+The profile is not flat. Under the two-year measure the estimated IGE rises
+from `r num(age_est("25-34", "Two-year average", "ige"))` for children aged
+25-34 to a peak of `r num(age_est("35-44", "Two-year average", "ige"))` for
+children aged 35-44, then falls back to
+`r num(age_est("45-55", "Two-year average", "ige"))` for the oldest group. The
+single-year measure follows the same shape, peaking at
+`r num(age_est("35-44", "Single-year", "ige"))` in the middle group.
+
+The middle of the range is where the measurement works best. Earnings in the
+mid-thirties to mid-forties are close to their peak, so current income is a
+fair proxy for long-run economic status and the attenuation is smallest. At
+both ends of the range, measured income is a worse proxy for status, and the
+estimate falls with it. This is the attenuation bias that the lifecycle
+literature warns about, and it has a direct practical consequence: an IGE
+measured on young adults will understate the true intergenerational persistence
+of income, potentially by a large margin.
+
+One caveat belongs with this result. These are age groups in a single
+cross-section, not the same people followed over time, so the pattern mixes an
+age effect with a cohort effect. Children aged 45-55 in 2023 were in their
+twenties during the 1990s, and children aged 25-34 were in theirs during the
+2010s; they entered the labour market under very different conditions. Part of
+the decline in the oldest group may therefore be cohort-specific rather than a
+purely mechanical consequence of measuring income too late in life.
+
+## Limitations
+
+- **Two years is not a long run.** Averaging 2020 and 2022 reduces but does
+  not remove measurement error, which is one reason the R-squared stays near
+  `r num(est("Two-year average", "r_squared"))`. The estimates preferred in
+  the literature use much longer income windows, and they are typically larger.
+- **Family income, not individual income.** The PSID family income measure
+  includes a spouse's earnings. A parent's measure is therefore household
+  income in the parent's own household, and a child's measure is household
+  income in the child's household.
+- **2020 and 2022 are unusual years.** They contain the pandemic and its
+  immediate aftermath, when labour markets and household composition moved
+  sharply. The two-year average spans some of that, but not all of it.
+- **Selection.** The sample contains children who are observed in 2023 with
+  positive income and whose parent is separately observed. Children who left
+  the study, or who are not separately observed, do not appear, and their
+  absence is unlikely to be random.
+- **No controls.** These are single-variable log-log regressions. Adding
+  parental characteristics and child background would change the coefficient
+  from a measure of rank persistence into a structural parameter, which is a
+  different and more ambitious object.
+- **Cross-sectional age profiles.** As noted, the age pattern above is a
+  profile of different cohorts, not a panel tracking the same people.
+
+## Takeaway
+
+Roughly 30% of the income advantage a parent holds is passed on to the child,
+using two years of income to measure both: an IGE of
+`r num(est("Two-year average", "ige"))`, against
+`r num(est("Single-year", "ige"))` when a single year is used. The gap
+between those two numbers is not a detail of the data. It is the difference
+between measuring where a family currently stands and measuring where it
+stands once temporary luck has washed out.
+
+The age profile makes the same point from the other direction. Measured
+persistence is weakest exactly where income is measured worst, at the start
+and end of a career, and strongest in the middle, where income is closest to
+its plateau. Anyone who reports an intergenerational elasticity without
+saying how income was measured and at what age is reporting a number that
+could easily be a third too small.
+
+For policy, the reading is sobering but not fixed. If persistence is this
+high, then the economic starting point of a child's parents does substantial
+work in determining where the child ends up, and the returns to interventions
+that raise the bottom of the distribution are correspondingly large.
+
+*Code and data: [github.com/Peterjianghaowen/blog6-sql-ige](https://github.com/Peterjianghaowen/blog6-sql-ige). Data source: Panel Study of Income Dynamics, Institute for Social Research, University of Michigan.*
