@@ -1,0 +1,283 @@
+---
+title: "How Much Evidence Does a Survey Buy? Confidence Intervals, Coverage and Hypothesis Tests"
+date: 2026-10-31
+categories:
+  - economics
+  - statistics
+  - data visualization
+  - R
+format:
+  html:
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+library(readr)
+library(dplyr)
+library(plotly)
+
+# Everything the post shows comes from the analysis repository
+base <- "https://raw.githubusercontent.com/Peterjianghaowen/blog8-simulation-inference/main/"
+
+key   <- read_csv(paste0(base, "results/key_numbers.csv"))
+cov   <- read_csv(paste0(base, "results/coverage.csv"))
+small <- read_csv(paste0(base, "results/small_sample.csv"))
+nulls <- read_csv(paste0(base, "results/null_summary.csv"))
+pw    <- read_csv(paste0(base, "results/power.csv"))
+wsum  <- read_csv(paste0(base, "results/widget_summary.csv"))
+wpow  <- read_csv(paste0(base, "results/widget_power.csv"))
+
+ks <- function(stat) key$value[key$stat == stat]
+ns <- function(stat) nulls$value[nulls$stat == stat]
+num <- function(x, d = 2) sprintf(paste0("%.", d, "f"), x)
+pct <- function(x, d = 2) sprintf(paste0("%.", d, "f"), 100 * x)
+pctabs <- function(x, d = 2) sprintf(paste0("%.", d, "f"), 100 * abs(x))
+
+cov_at <- function(n, level) {
+  cov$coverage[cov$n == n & cov$level == level]
+}
+small_at <- function(n, col) small[[col]][small$n_per_month == n]
+power_at <- function(n, delta) {
+  d <- pw[pw$n == n, ]
+  d$power[which.min(abs(d$delta - delta))]
+}
+```
+
+Every month the Bureau of Labor Statistics publishes an unemployment rate, and
+every month the news reports how it moved. The number is treated as a fact
+about the economy. It is not: it is an estimate from a sample of roughly
+100,000 people, and a different sample of the same size would have produced a
+slightly different number. How much does that matter? This post answers it by
+simulation: how precise the rate is, whether the interval we publish really
+contains the truth, and what a smaller survey would have concluded.
+
+The data are the IPUMS Current Population Survey basic monthly microdata,
+January 2019 to August 2026. I compare **January 2019** with **January 2024**
+— the same month in different years, so the labour market's seasonal pattern
+cancels out — and ask whether the unemployment rate really changed. It was
+`r pct(ks("rate_2019"))`% in January 2019
+(`r format(ks("n_2019"), big.mark = ",")` people) and
+`r pct(ks("rate_2024"))`% in January 2024
+(`r format(ks("n_2024"), big.mark = ",")` people): a fall of
+`r pctabs(ks("diff"))` percentage points. Is that a change in the economy,
+or a change in who answered the phone?
+
+## 1. Build the interval by resampling
+
+The usual way to put an interval around an estimate is a formula that assumes
+the sample was drawn at random from a population of equal-weight people. The
+CPS is neither simple nor equal-weighted — its final person weights run from
+177 to 13,140 — so we resample instead: draw the same number of interviewed
+people at random *with replacement*, recompute the weighted rate, and repeat
+2,000 times. The spread of those 2,000 numbers is the bootstrap distribution:
+how much the estimate would have moved if we had interviewed somebody else.
+
+![Bootstrap distributions of the January 2024 rate and of the change from January 2019.](https://raw.githubusercontent.com/Peterjianghaowen/blog8-simulation-inference/main/results/fig1_bootstrap.png)
+
+The bootstrap interval for January 2024 is `r pct(ks("ci_low_2024"))`% to
+`r pct(ks("ci_high_2024"))`%, and for the change between the two months
+`r pct(ks("ci_low_diff"))` to `r pct(ks("ci_high_diff"))` percentage points.
+The textbook interval for the same change is `r pct(ks("wald_low_diff"))` to
+`r pct(ks("wald_high_diff"))` — 49% narrower. That gap is a design effect: the
+textbook formula understates the real sampling error of the CPS by almost
+half, so every interval built that way is too narrow.
+
+## 2. Does a 95% interval contain the truth 95% of the time?
+
+An interval is a promise about how often it will contain the truth, and
+promises should be checked: build a population with a known unemployment rate,
+sample it over and over, and count how often the interval contains the
+truth.
+
+![Simulated coverage of the interval, and coverage on the real CPS data.](https://raw.githubusercontent.com/Peterjianghaowen/blog8-simulation-inference/main/results/fig2_coverage.png)
+
+The promise is kept: at 95%, coverage is `r pct(cov_at(250, 0.95), 1)`% with
+250 interviews and `r pct(cov_at(80923, 0.95), 1)`% with 80,923, and every
+other nominal level lands within about a point of what it promised.
+
+The same test on the real CPS data is less comfortable. Repeating the
+experiment 1,000 times with smaller surveys, the bootstrap interval contains
+the full-sample estimate about `r round(100 * mean(small$coverage_boot))`% of
+the time; the textbook interval about
+`r round(100 * mean(small$coverage_wald))`% of the time. The bootstrap is at
+least honest about a weighted proportion being a lopsided statistic. The
+formula is not.
+
+## 3. A p-value is an area under a simulated null distribution
+
+To say "the rate changed", we test H0: the two months have the same rate.
+Under H0 the estimated change is still random, with a distribution centred on
+zero. Simulating that experiment 20,000 times gives the null distribution
+below; everything outside ±`r pctabs(ns("crit_low"))` points is the
+rejection region, 5% of the null distribution by construction.
+
+![The simulated null distribution of the estimated change, with the rejection region and the observed change.](https://raw.githubusercontent.com/Peterjianghaowen/blog8-simulation-inference/main/results/fig3_null.png)
+
+The observed change of `r pct(ks("diff"))` points falls just inside that
+region, and the p-value is simply the area of the null distribution beyond
+what we observed: `r num(ns("p_sim"), 3)`. The textbook formula, using the
+too-small standard error, would have said
+`r format(ns("p_norm"), scientific = FALSE, digits = 2)`. Both are correct
+arithmetic; only one is honest about how much the estimate can move.
+
+## 4. How much could this survey have found?
+
+The most useful thing a simulation tells you is what a survey *could* have
+found. The power to detect the change we measured rises from
+`r pct(power_at(1000, ks("diff")), 1)`% with 1,000 interviews per month to
+`r pct(power_at(80923, ks("diff")), 1)`% with 80,923.
+
+![Power curves: the chance of detecting a real change at different sample sizes.](https://raw.githubusercontent.com/Peterjianghaowen/blog8-simulation-inference/main/results/fig4_power.png)
+
+The interactive figure below puts that in your hands: drag the slider to change
+how many people were interviewed each month, and watch the statistic move, the
+p-value fall, and the verdict flip.
+
+```{r}
+#| label: interactive-power
+#| fig-height: 7.2
+
+z_grid <- seq(-4, 4, length.out = 401)
+crit_z <- 1.96
+
+xl <- seq(-4, -crit_z, length.out = 120)
+xr <- seq(4, crit_z, length.out = 120)
+left_x  <- c(xl, -crit_z, -4);  left_y  <- c(dnorm(xl), 0, 0)
+right_x <- c(xr, crit_z, 4);   right_y <- c(dnorm(xr), 0, 0)
+
+power_grid <- sort(unique(wpow$delta)) * 100          # percentage points
+power_y <- lapply(wsum$n, function(n) {
+  p <- wpow$power[wpow$n == n]
+  approx(sort(unique(wpow$delta)) * 100, p, xout = power_grid)$y
+})
+
+label_for <- function(i) {
+  sprintf("n = %s per month<br>z = %+.2f &nbsp;|&nbsp; p-value = %s<br>%s",
+          format(wsum$n[i], big.mark = ","), wsum$z_obs[i],
+          ifelse(wsum$p_value[i] < 0.001, "< 0.001", sprintf("%.3f", wsum$p_value[i])),
+          ifelse(wsum$p_value[i] < 0.05,
+                 "reject H0: the rate really changed",
+                 "cannot reject H0: not enough evidence"))
+}
+
+p <- plot_ly()
+
+p <- p |> add_trace(
+  x = z_grid, y = dnorm(z_grid), type = "scatter", mode = "lines",
+  line = list(color = "#1f77b4", width = 2), fill = "tozeroy",
+  fillcolor = "rgba(31,119,180,0.18)", hoverinfo = "skip", showlegend = FALSE,
+  xaxis = "x", yaxis = "y")
+
+p <- p |> add_trace(
+  x = left_x, y = left_y, type = "scatter", mode = "lines", fill = "toself",
+  fillcolor = "rgba(214,39,40,0.18)", line = list(width = 0), hoverinfo = "skip",
+  showlegend = FALSE, xaxis = "x", yaxis = "y")
+
+p <- p |> add_trace(
+  x = right_x, y = right_y, type = "scatter", mode = "lines", fill = "toself",
+  fillcolor = "rgba(214,39,40,0.18)", line = list(width = 0), hoverinfo = "skip",
+  showlegend = FALSE, xaxis = "x", yaxis = "y")
+
+p <- p |> add_trace(
+  x = c(wsum$z_obs[1], wsum$z_obs[1]), y = c(0, 0.42), type = "scatter",
+  mode = "lines", line = list(color = "#222222", width = 2, dash = "dash"),
+  hoverinfo = "skip", showlegend = FALSE, xaxis = "x", yaxis = "y")
+
+p <- p |> add_trace(
+  x = power_grid, y = power_y[[1]], type = "scatter", mode = "lines",
+  line = list(color = "#f0a202", width = 2.5), hoverinfo = "skip",
+  showlegend = FALSE, xaxis = "x2", yaxis = "y2")
+
+p <- p |> add_trace(
+  x = c(ks("diff") * 100, ks("diff") * 100), y = c(0, 1), type = "scatter",
+  mode = "lines", line = list(color = "#222222", width = 1.2, dash = "dash"),
+  hoverinfo = "skip", showlegend = FALSE, xaxis = "x2", yaxis = "y2")
+
+p <- p |> add_trace(
+  x = power_grid, y = rep(0.8, length(power_grid)), type = "scatter",
+  mode = "lines", line = list(color = "#8c8c8c", width = 1, dash = "dot"),
+  hoverinfo = "skip", showlegend = FALSE, xaxis = "x2", yaxis = "y2")
+
+steps <- lapply(seq_len(nrow(wsum)), function(i) {
+  list(
+    label = paste0(format(wsum$n[i], big.mark = ","), " per month"),
+    method = "update",
+    args = list(
+      list(x = list(c(wsum$z_obs[i], wsum$z_obs[i]), power_grid),
+           y = list(c(0, 0.42), power_y[[i]])),
+      list("annotations[0].text" = label_for(i)),
+      c(3, 4)
+    )
+  )
+})
+
+p <- p |> layout(
+  xaxis  = list(domain = c(0, 1), anchor = "y", range = c(-4, 4),
+                title = "Test statistic z", zeroline = FALSE, title_font = list(size = 11)),
+  yaxis  = list(domain = c(0.60, 1), anchor = "x", range = c(0, 0.52),
+                title = "Null density", title_font = list(size = 11)),
+  xaxis2 = list(domain = c(0, 1), anchor = "y2",
+                title = "True change in the unemployment rate (percentage points)",
+                title_font = list(size = 11)),
+  yaxis2 = list(domain = c(0.19, 0.45), anchor = "x2", range = c(0, 1),
+                title = "Power", title_font = list(size = 11)),
+  title = list(text = paste0("How much evidence does the sample size buy?<br>",
+                             "<sup>Drag the slider: the statistic moves, the ",
+                             "p-value falls, and the verdict can flip</sup>"),
+               font = list(size = 14), x = 0.02, xanchor = "left"),
+  sliders = list(list(
+    active = 0,
+    currentvalue = list(prefix = "Sample size: "),
+    pad = list(t = 30, b = 10),
+    x = 0.13, y = 0.08, len = 0.80,
+    steps = steps
+  )),
+  annotations = list(
+    list(x = 0.1, y = 0.47, xref = "x", yref = "y", showarrow = FALSE,
+         align = "center", text = label_for(1), font = list(size = 12, color = "#222222")),
+    list(x = -3.55, y = 0.30, xref = "x", yref = "y", showarrow = FALSE,
+         text = "null distribution under H0", font = list(size = 10, color = "#1f77b4"),
+         xanchor = "left"),
+    list(x = -2.9, y = 0.20, xref = "x", yref = "y", showarrow = FALSE,
+         text = "rejection region (5%)", font = list(size = 10, color = "#d62728")),
+    list(x = ks("diff") * 100 - 0.02, y = 0.62, xref = "x2", yref = "y2",
+         showarrow = FALSE, text = "observed change", font = list(size = 10, color = "#222222"),
+         xanchor = "right"),
+    list(x = -0.78, y = 0.845, xref = "x2", yref = "y2", showarrow = FALSE,
+         text = "80% power", font = list(size = 10, color = "#8c8c8c"), xanchor = "left")
+  ),
+  margin = list(l = 65, r = 30, t = 105, b = 55),
+  hovermode = "closest"
+) |>
+  config(displaylogo = FALSE, responsive = TRUE)
+```
+
+A survey of 1,000 people a month would have missed this real change 94% of
+the time and reported "no change". Even the full CPS sample has roughly a
+one-in-three chance of missing a change this size. A p-value of
+`r num(ns("p_sim"), 3)` is therefore not a statement that the change was
+economically important — it is a statement that this sample could see it.
+
+## Takeaway
+
+A confidence interval and a p-value are statements about the data you
+happened to collect, not about the world. The bootstrap says how much your
+estimate would move if you collected slightly different data; simulation says
+how often the interval you built would have been right; and the null
+distribution turns "significant" into a tail area you can point at. None of
+this replaces judgement, but it puts a number on the part of a conclusion
+that came from luck.
+
+The unemployment rate fell by `r pctabs(ks("diff"))` points between January
+2019 and January 2024, and this sample is large enough to notice it: the 95%
+interval runs from `r pct(ks("ci_low_diff"))` to
+`r pct(ks("ci_high_diff"))` points, and the simulated p-value is
+`r num(ns("p_sim"), 3)`. The same comparison in a survey a tenth the size
+would have been indistinguishable from noise — and a confident headline would
+have said nothing changed. Simulation is what tells the two apart.
+
+*Code and data: [github.com/Peterjianghaowen/blog8-simulation-inference](https://github.com/Peterjianghaowen/blog8-simulation-inference). Data source: IPUMS Current Population Survey, University of Minnesota.*
