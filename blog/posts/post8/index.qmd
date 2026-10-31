@@ -135,7 +135,9 @@ found. The power to detect the change we measured rises from
 
 The interactive figure below puts that in your hands: drag the slider to change
 how many people were interviewed each month, and watch the statistic move, the
-p-value fall, and the verdict flip.
+p-value fall, and the verdict flip. It assumes the two months are the same size,
+so at the top of the slider it reads a p-value of 0.019, slightly above the
+0.016 that the two real months (97,181 and 80,923 people) gave.
 
 ```{r}
 #| label: interactive-power
@@ -252,8 +254,11 @@ p <- p |> layout(
   ),
   margin = list(l = 65, r = 30, t = 105, b = 55),
   hovermode = "closest"
-) |>
-  config(displaylogo = FALSE, responsive = TRUE)
+)
+
+# Print the widget as the last expression of the chunk (not as an assignment),
+# otherwise knitr captures no output and the figure never reaches the page.
+p |> config(displaylogo = FALSE, responsive = TRUE)
 ```
 
 A survey of 1,000 people a month would have missed this real change 94% of
