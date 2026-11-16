@@ -1,0 +1,193 @@
+---
+title: "Can a More Cautious Stock Picker Beat a Simple Average?"
+subtitle: "Gradient boosting, honest holdouts, and the distance between prediction and profit"
+author: Haowen Jiang
+date: 2026-11-16
+categories: [economics, machine learning, finance, Python, R]
+format:
+  html:
+    theme: flatly
+    code-fold: true
+    toc: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+read_asset <- function(name) read.csv(file.path("assets", name), check.names = FALSE)
+complete <- all(file.exists(file.path("assets", c("predictive_metrics.csv", "investment_summary.csv",
+                                                  "validation.csv", "loss_difference_intervals.csv"))))
+cl <- read_asset("classroom_summary.csv")
+if (complete) {
+  pm <- read_asset("predictive_metrics.csv")
+  im <- read_asset("investment_summary.csv")
+  validation <- read_asset("validation.csv")
+  ci <- read_asset("loss_difference_intervals.csv")
+  audit <- read_asset("split_audit.csv")
+}
+number <- function(x, digits = 2) formatC(x, format = "f", digits = digits, big.mark = ",")
+dollar <- function(x) paste0(ifelse(x < 0, "-", ""), "$", number(abs(x), 0))
+pct <- function(x, digits = 2) number(100 * x, digits)
+pv <- function(model, variable, percent = FALSE) {
+  if (!complete) return("[pending model run]")
+  value <- pm[pm$model == model, variable]
+  if (percent) pct(value) else number(value)
+}
+iv <- function(model, variable, cost = 10, percent = FALSE) {
+  if (!complete) return("[pending model run]")
+  value <- im[im$model == model & im$cost_bps == cost, variable]
+  if (percent) pct(value) else number(value)
+}
+figure <- function(name, caption) {
+  path <- file.path("assets", name)
+  if (file.exists(path)) cat(sprintf("![%s](%s)\n\n", caption, path))
+  else cat("*Figure pending the verified model run.*\n\n")
+}
+```
+
+```{r}
+#| results: asis
+if (!complete) cat("::: {.callout-warning}\n## Working draft\nThe classroom statistics and data preparation have been executed. XGBoost is unavailable in the current environment, so model results are intentionally blank. This draft is not ready to publish or submit.\n:::\n")
+```
+
+A stock picker can make money without predicting stocks well: a rising market
+can reward almost any long portfolio. The useful question is whether its
+forecasts improve on a simple average, and whether its trades beat a comparable
+passive portfolio after costs. I test whether a less flexible gradient boosting
+model can do both.
+
+## What the classroom experiment established
+
+The classroom exercise compared two initially $100,000 portfolios per group,
+with the second selection incorporating technical indicators. In the archived
+results, portfolio 2 finished ahead in `r cl$wins2` of `r cl$n` pairs. Its average
+advantage was $`r number(cl$mean_difference, 0)`, but the paired 95% interval ran
+from `r dollar(cl$ci_low)` to `r dollar(cl$ci_high)` (p =
+`r number(cl$p_value, 3)`). That is suggestive, not decisive: the interval includes
+zero, and the groups experienced the same market rather than independent
+market histories.
+
+```{r}
+#| results: asis
+figure("classroom.png", "The spread across the 45 paired outcomes is large relative to the average advantage.")
+```
+
+The class code fits 300 boosted trees of depth five to recent prices, returns,
+momentum, and volatility. Each new tree corrects errors left by earlier trees.
+This flexibility can detect nonlinear patterns, but also fit accidental ones.
+Public information may already be reflected in prices; unexpected news changes
+returns; and a relationship learned in one market regime may disappear in another.
+
+## Give the model fewer ways to fool itself
+
+I use the same 95-stock universe and cached Yahoo Finance adjusted prices,
+January 2022–November 12, 2026, archived in Changlin Du's repository. Both models
+predict the return from the next trading day's close to the twentieth day's
+close: **19 trading-day intervals**, despite the usual “20-day return” label.
+
+The baseline preserves the class predictors and specified hyperparameters;
+both models are refitted on a common training period for a controlled comparison.
+The revision removes raw price levels and raw volume, uses conventional
+backward-looking momentum, relative volume, and drawdown, and restricts trees
+to depth two or three. A $200 share is not inherently more promising than a
+$20 share; these features describe comparable changes instead of dollar scales.
+
+Validation in 2024 selects `r if (complete) validation$rounds[1] else NA` trees
+of depth `r if (complete) validation$depth[1] else NA` from four configurations.
+I then refit both models using labels fully observed before 2025. The held-out
+test covers 24 holding periods, January 3, 2025–October 29, 2026. Purging training rows whose future returns cross
+each boundary prevents tomorrow's outcomes from entering today's training set.
+The historical-mean forecast uses those same training observations.
+
+## Prediction and investment are different tests
+
+Test forecasts are evaluated on non-overlapping holding periods. The original,
+revised, and historical-mean RMSEs are respectively
+`r pv("Original", "rmse", TRUE)`, `r pv("Revised", "rmse", TRUE)`, and
+`r pv("Historical mean", "rmse", TRUE)` percentage points. RMSE penalizes large
+forecast errors. The revised model's average within-date rank correlation is
+`r pv("Revised", "mean_rank_ic")`; ranking matters when a portfolio buys only
+the highest-scoring stocks.
+
+```{r}
+#| results: asis
+figure("prediction.png", "Forecast errors are measured on exactly the same test observations.")
+if (complete) {
+  x <- ci[ci$comparison == "revised_minus_mean", ]
+  cat(sprintf("A three-period block bootstrap gives a 95%% interval of %.2f to %.2f squared percentage points for revised minus mean squared error. Negative values favor the revision. %s\n\n",
+    x$low * 10000, x$high * 10000,
+    if (x$low <= 0 && x$high >= 0) "The interval spans zero, so the apparent difference is uncertain."
+    else "This interval describes uncertainty within this historical sample, not stability across future regimes."))
+  shown <- pm[, c("model", "rmse", "mae", "oos_r2_vs_mean", "direction_accuracy", "mean_rank_ic")]
+  shown[,2:3] <- 100 * shown[,2:3]
+  names(shown) <- c("Model", "RMSE (pp)", "MAE (pp)", "R² vs mean", "Direction accuracy", "Rank correlation")
+  print(knitr::kable(shown, digits = 3, row.names = FALSE))
+}
+```
+
+Both stock pickers buy their top ten equally. The simple investment benchmark
+holds all 95 stocks equally; SPY provides additional market context. Every
+strategy follows the same calendar. Costs are 10 basis points per dollar bought
+or sold, including initial purchases and final liquidation, with weights allowed
+to drift between trades.
+
+The revised strategy turns $100 into $`r iv("Revised", "final_wealth")`, versus
+$`r iv("Original", "final_wealth")` for the original and
+$`r iv("Equal weight", "final_wealth")` for the equal-weight benchmark.
+Its maximum daily drawdown is `r iv("Revised", "max_drawdown", percent=TRUE)`%.
+The higher payoff comes with annualized volatility of
+`r iv("Revised", "daily_vol_annualized", percent=TRUE)`%, versus
+`r iv("Equal weight", "daily_vol_annualized", percent=TRUE)`% for equal weight.
+Its zero-cash-rate Sharpe ratio is lower (`r iv("Revised", "sharpe_zero_rf")`
+versus `r iv("Equal weight", "sharpe_zero_rf")`): more profit did not mean more
+return per unit of volatility. At 25 basis points, its ending value remains
+$`r iv("Revised", "final_wealth", cost=25)`, so this historical advantage survives
+the higher assumed trading cost.
+
+```{r}
+#| results: asis
+figure("wealth.png", "Net investment performance, using identical holding intervals and trading costs.")
+figure("costs.png", "Cost sensitivity at zero, 10, and 25 basis points per traded dollar.")
+if (complete) {
+  shown <- im[im$cost_bps == 10, c("model", "final_wealth", "annualized_return", "max_drawdown", "sharpe_zero_rf")]
+  shown[,3:4] <- 100 * shown[,3:4]
+  names(shown) <- c("Strategy", "Final $", "Annualized return (%)", "Max drawdown (%)", "Sharpe (zero cash rate)")
+  print(knitr::kable(shown, digits = 2, row.names = FALSE))
+}
+```
+
+## What this evidence can support
+
+```{r}
+#| results: asis
+if (complete) {
+  r <- pm[pm$model == "Revised", "rmse"]
+  o <- pm[pm$model == "Original", "rmse"]
+  b <- pm[pm$model == "Historical mean", "rmse"]
+  wealth_r <- im[im$model == "Revised" & im$cost_bps == 10, "final_wealth"]
+  wealth_b <- im[im$model == "Equal weight" & im$cost_bps == 10, "final_wealth"]
+  cat(sprintf("The revision %s the original's forecast error and %s the mean forecast. It %s the equal-weight portfolio after the assumed costs. These are separate findings: selecting a few profitable stocks does not make every return forecast accurate.\n\n",
+    if (r < o) "reduces" else "does not reduce",
+    if (r < b) "beats" else "does not beat",
+    if (wealth_r > wealth_b) "outperforms" else "does not outperform"))
+} else cat("*The result-dependent conclusion will be generated only after both models have run.*\n\n")
+```
+
+This is a short retrospective test on a fixed, currently surviving universe,
+not a point-in-time reconstruction of all investable stocks. Cached prices may
+contain later revisions. Taxes, market impact, and a positive cash rate are
+omitted. Even non-overlapping periods share market conditions, so the number of
+independent opportunities is much smaller than the number of stock rows.
+The takeaway is a standard of evidence: an improvement should survive an honest
+holdout, a simple forecast, and a comparable net-of-cost investment benchmark.
+A profitable backtest alone cannot establish a durable forecasting edge.
+
+## Sources and reproducibility
+
+- [Class model archived by Changlin Du](https://github.com/Changlin-DU/Stock_Returns/blob/ff987ed36c83bf17f9644aa0e65304515e37c788/code/original/original_xgboost.R).
+- [Cached prices and classroom results](https://github.com/Changlin-DU/Stock_Returns/tree/ff987ed36c83bf17f9644aa0e65304515e37c788/data/raw). Prices originate from Yahoo Finance; the repository fixes the downloaded vintage.
+- [Michael Li's example](https://leebaba999.github.io/aeds-website/blog/posts/post9/) and [Changlin Du's example](https://changlin-du.github.io/ChanglinDU-Website/blog/posts/post9/) informed the assignment context. The 2025 holdout, revision, code, and evaluations here are separate work.
+- [Code, cached data, and generated results](https://github.com/Peterjianghaowen/blog9-stock-returns). The README documents commands, predictor definitions, purged splits, and transaction-cost accounting. XGBoost is fitted through Python; R prepares the data, evaluates portfolios, and renders the figures.

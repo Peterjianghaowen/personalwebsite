@@ -39,7 +39,7 @@
     "href": "blog/index.html",
     "title": "Blog",
     "section": "",
-    "text": "How Much Evidence Does a Survey Buy? Confidence Intervals, Coverage and Hypothesis Tests\n\n\n\n\n\n\n\n\nOct 31, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nHow Much Life Does an Extra Dollar Buy? The Health-Income Curve in 154 Countries\n\n\n\n\n\n\n\n\nOct 26, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nHow Much of a Parent’s Success Does a Child Inherit? Matching Parents and Children with SQL\n\n\n\n\n\n\n\n\nOct 25, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nHow Far Does Center City’s Prosperity Reach? Mapping Income Across Philadelphia’s Neighborhoods\n\n\n\n\n\n\n\n\nOct 19, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nDid Brexit Leave the UK Behind? Output, Investment, and Trade Against the G7\n\n\n\n\n\n\n\n\nOct 5, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nWhere Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026\n\n\n\n\n\n\n\n\nSep 26, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nAre NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players\n\n\n\n\n\n\n\n\nSep 21, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nOne Theorem, Four Lemmas: The Envelope Theorem in Microeconomics\n\n\n\n\n\n\n\n\nSep 14, 2026\n\n\n\n\n\nNo matching items"
+    "text": "Can a More Cautious Stock Picker Beat a Simple Average?\n\n\nGradient boosting, honest holdouts, and the distance between prediction and profit\n\n\n\n\n\n\n\n\nNov 16, 2026\n\n\nHaowen Jiang\n\n\n\n\n\n\n\n\n\n\n\n\nHow Much Evidence Does a Survey Buy? Confidence Intervals, Coverage and Hypothesis Tests\n\n\n\n\n\n\n\n\n\n\n\nOct 31, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nHow Much Life Does an Extra Dollar Buy? The Health-Income Curve in 154 Countries\n\n\n\n\n\n\n\n\n\n\n\nOct 26, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nHow Much of a Parent’s Success Does a Child Inherit? Matching Parents and Children with SQL\n\n\n\n\n\n\n\n\n\n\n\nOct 25, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nHow Far Does Center City’s Prosperity Reach? Mapping Income Across Philadelphia’s Neighborhoods\n\n\n\n\n\n\n\n\n\n\n\nOct 19, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nDid Brexit Leave the UK Behind? Output, Investment, and Trade Against the G7\n\n\n\n\n\n\n\n\n\n\n\nOct 5, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nWhere Did the Pandemic Hit Hardest? State Unemployment in the CPS, 2019-2026\n\n\n\n\n\n\n\n\n\n\n\nSep 26, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nAre NBA Salaries Efficient? Scraping Stats and Contracts to Find Mispriced Players\n\n\n\n\n\n\n\n\n\n\n\nSep 21, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nOne Theorem, Four Lemmas: The Envelope Theorem in Microeconomics\n\n\n\n\n\n\n\n\n\n\n\nSep 14, 2026\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "blog/posts/post3/index.html",
@@ -544,5 +544,47 @@
     "title": "About",
     "section": "",
     "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "blog/posts/post9/index.html",
+    "href": "blog/posts/post9/index.html",
+    "title": "Can a More Cautious Stock Picker Beat a Simple Average?",
+    "section": "",
+    "text": "A stock picker can make money without predicting stocks well: a rising market can reward almost any long portfolio. The useful question is whether its forecasts improve on a simple average, and whether its trades beat a comparable passive portfolio after costs. I test whether a less flexible gradient boosting model can do both."
+  },
+  {
+    "objectID": "blog/posts/post9/index.html#what-the-classroom-experiment-established",
+    "href": "blog/posts/post9/index.html#what-the-classroom-experiment-established",
+    "title": "Can a More Cautious Stock Picker Beat a Simple Average?",
+    "section": "What the classroom experiment established",
+    "text": "What the classroom experiment established\nThe classroom exercise compared two initially $100,000 portfolios per group, with the second selection incorporating technical indicators. In the archived results, portfolio 2 finished ahead in 30 of 45 pairs. Its average advantage was $1,909, but the paired 95% interval ran from -$380 to $4,197 (p = 0.100). That is suggestive, not decisive: the interval includes zero, and the groups experienced the same market rather than independent market histories.\n\n\n\nThe spread across the 45 paired outcomes is large relative to the average advantage.\n\n\nThe class code fits 300 boosted trees of depth five to recent prices, returns, momentum, and volatility. Each new tree corrects errors left by earlier trees. This flexibility can detect nonlinear patterns, but also fit accidental ones. Public information may already be reflected in prices; unexpected news changes returns; and a relationship learned in one market regime may disappear in another."
+  },
+  {
+    "objectID": "blog/posts/post9/index.html#give-the-model-fewer-ways-to-fool-itself",
+    "href": "blog/posts/post9/index.html#give-the-model-fewer-ways-to-fool-itself",
+    "title": "Can a More Cautious Stock Picker Beat a Simple Average?",
+    "section": "Give the model fewer ways to fool itself",
+    "text": "Give the model fewer ways to fool itself\nI use the same 95-stock universe and cached Yahoo Finance adjusted prices, January 2022–November 12, 2026, archived in Changlin Du’s repository. Both models predict the return from the next trading day’s close to the twentieth day’s close: 19 trading-day intervals, despite the usual “20-day return” label.\nThe baseline preserves the class predictors and specified hyperparameters; both models are refitted on a common training period for a controlled comparison. The revision removes raw price levels and raw volume, uses conventional backward-looking momentum, relative volume, and drawdown, and restricts trees to depth two or three. A $200 share is not inherently more promising than a $20 share; these features describe comparable changes instead of dollar scales.\nValidation in 2024 selects 100 trees of depth 2 from four configurations. I then refit both models using labels fully observed before 2025. The held-out test covers 24 holding periods, January 3, 2025–October 29, 2026. Purging training rows whose future returns cross each boundary prevents tomorrow’s outcomes from entering today’s training set. The historical-mean forecast uses those same training observations."
+  },
+  {
+    "objectID": "blog/posts/post9/index.html#prediction-and-investment-are-different-tests",
+    "href": "blog/posts/post9/index.html#prediction-and-investment-are-different-tests",
+    "title": "Can a More Cautious Stock Picker Beat a Simple Average?",
+    "section": "Prediction and investment are different tests",
+    "text": "Prediction and investment are different tests\nTest forecasts are evaluated on non-overlapping holding periods. The original, revised, and historical-mean RMSEs are respectively 9.38, 9.01, and 8.99 percentage points. RMSE penalizes large forecast errors. The revised model’s average within-date rank correlation is 0.06; ranking matters when a portfolio buys only the highest-scoring stocks.\n\n\n\nForecast errors are measured on exactly the same test observations.\n\n\nA three-period block bootstrap gives a 95% interval of -1.77 to 2.30 squared percentage points for revised minus mean squared error. Negative values favor the revision. The interval spans zero, so the apparent difference is uncertain.\n\n\n\n\n\n\n\n\n\n\n\nModel\nRMSE (pp)\nMAE (pp)\nR² vs mean\nDirection accuracy\nRank correlation\n\n\n\n\nOriginal\n9.375\n6.829\n-0.088\n0.543\n0.028\n\n\nRevised\n9.010\n6.624\n-0.005\n0.554\n0.059\n\n\nHistorical mean\n8.989\n6.580\n0.000\n0.554\nNA\n\n\n\nBoth stock pickers buy their top ten equally. The simple investment benchmark holds all 95 stocks equally; SPY provides additional market context. Every strategy follows the same calendar. Costs are 10 basis points per dollar bought or sold, including initial purchases and final liquidation, with weights allowed to drift between trades.\nThe revised strategy turns $100 into $168.84, versus $138.40 for the original and $137.40 for the equal-weight benchmark. Its maximum daily drawdown is -20.36%. The higher payoff comes with annualized volatility of 26.91%, versus 14.24% for equal weight. Its zero-cash-rate Sharpe ratio is lower (1.21 versus 1.31): more profit did not mean more return per unit of volatility. At 25 basis points, its ending value remains $161.39, so this historical advantage survives the higher assumed trading cost.\n\n\n\nNet investment performance, using identical holding intervals and trading costs.\n\n\n\n\n\nCost sensitivity at zero, 10, and 25 basis points per traded dollar.\n\n\n\n\n\n\n\n\n\n\n\n\nStrategy\nFinal $\nAnnualized return (%)\nMax drawdown (%)\nSharpe (zero cash rate)\n\n\n\n\nOriginal\n138.40\n19.67\n-21.77\n0.91\n\n\nRevised\n168.84\n33.57\n-20.36\n1.21\n\n\nEqual weight\n137.40\n19.20\n-16.48\n1.31\n\n\nSPY\n132.26\n16.71\n-18.76\n1.01"
+  },
+  {
+    "objectID": "blog/posts/post9/index.html#what-this-evidence-can-support",
+    "href": "blog/posts/post9/index.html#what-this-evidence-can-support",
+    "title": "Can a More Cautious Stock Picker Beat a Simple Average?",
+    "section": "What this evidence can support",
+    "text": "What this evidence can support\nThe revision reduces the original’s forecast error and does not beat the mean forecast. It outperforms the equal-weight portfolio after the assumed costs. These are separate findings: selecting a few profitable stocks does not make every return forecast accurate.\nThis is a short retrospective test on a fixed, currently surviving universe, not a point-in-time reconstruction of all investable stocks. Cached prices may contain later revisions. Taxes, market impact, and a positive cash rate are omitted. Even non-overlapping periods share market conditions, so the number of independent opportunities is much smaller than the number of stock rows. The takeaway is a standard of evidence: an improvement should survive an honest holdout, a simple forecast, and a comparable net-of-cost investment benchmark. A profitable backtest alone cannot establish a durable forecasting edge."
+  },
+  {
+    "objectID": "blog/posts/post9/index.html#sources-and-reproducibility",
+    "href": "blog/posts/post9/index.html#sources-and-reproducibility",
+    "title": "Can a More Cautious Stock Picker Beat a Simple Average?",
+    "section": "Sources and reproducibility",
+    "text": "Sources and reproducibility\n\nClass model archived by Changlin Du.\nCached prices and classroom results. Prices originate from Yahoo Finance; the repository fixes the downloaded vintage.\nMichael Li’s example and Changlin Du’s example informed the assignment context. The 2025 holdout, revision, code, and evaluations here are separate work.\nCode, cached data, and generated results. The README documents commands, predictor definitions, purged splits, and transaction-cost accounting. XGBoost is fitted through Python; R prepares the data, evaluates portfolios, and renders the figures."
   }
 ]
